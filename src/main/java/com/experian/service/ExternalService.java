@@ -34,6 +34,7 @@ import com.experian.dto.neo4j.request.FinalNeo4JRequest;
 import com.experian.dto.neo4j.request.TaxationBasedSuggestionRequest;
 import com.experian.dto.neo4j.response.SuggestionResponse;
 import com.experian.dto.neo4j.response.TaxationResponse;
+import com.experian.dto.neo4j.response.WordCategory;
 import com.experian.dto.neo4j.response.WordCategoryResponse;
 import com.experian.dto.neo4j.response.taxation.Taxation;
 import com.experian.mapper.ExperianAIMLMapper;
@@ -190,9 +191,11 @@ public class ExternalService {
 	 * @return
 	 */
 	public WordCategoryResponse getWordCategoryFromNeo4j() {
-		ResponseEntity<WordCategoryResponse> response = template.getForEntity(wordCategoryUri,
-				WordCategoryResponse.class);
-		return response.getBody();
+		ResponseEntity<List<WordCategory>> response = template.exchange(wordCategoryUri,HttpMethod.GET, null, new ParameterizedTypeReference<List<WordCategory>>() {
+		});
+		WordCategoryResponse wordCategoryResponse = new WordCategoryResponse();
+		wordCategoryResponse.setWordCategory(response.getBody());
+		return wordCategoryResponse;
 	}
 
 	/**
@@ -257,7 +260,7 @@ public class ExternalService {
 	 * @param suggestionList
 	 * @return
 	 */
-	public FileUploadResponse addMatchedRequirement(List<Suggestions> suggestionList) {
+	public FileUploadResponseList addMatchedRequirement(List<Suggestions> suggestionList) {
 		// Get Word count.
 		List<RequirementSuggestions> requirementSuggestionsList = new ArrayList<>();
 		WordCategoryResponse wordCategoryResponse = getWordCategoryFromNeo4j();
@@ -288,15 +291,11 @@ public class ExternalService {
 			// convert quality score and taxation into final response
 			AimlFileFinalResponse aimlFileFinalResponse = aimlMapper.mapQualityAndTaxationToGetFinalResponse(
 					experianFileRequest, aimlTaxationResponse, aimlQualityScoreRespnse);
-
-			SuggestionResponse suggestionResponse = new SuggestionResponse();
-			suggestionResponse.setSuggestions(requirementSuggestionsList);
+			SuggestionResponse suggestionResponse = createSuggestionResponseFromSuggestionList(suggestionList);
 			Map<AimlFileResponse, RequirementSuggestions> map = helper.fetchMapBasedOnRequirementId(aimlFileFinalResponse,
 					suggestionResponse);
 			FileUploadResponseList responseList = helper.createFinalUploadResponseList(map);
-			if (!responseList.getResponse().isEmpty()) {
-				return responseList.getResponse().get(0);
-			}
+			return responseList;
 		}
 		return null;
 	}
@@ -342,7 +341,7 @@ public class ExternalService {
 				Map<AimlFileResponse, RequirementSuggestions> map = helper
 						.fetchMapBasedOnRequirementId(aimlFileFinalResponse, suggestionResponse);
 				FileUploadResponseList responseList = helper.createFinalUploadResponseList(map);
-				if (!responseList.getResponse().isEmpty()) {
+				if(responseList != null) {
 					return responseList.getResponse().get(0);
 				}
 			}
@@ -382,5 +381,32 @@ public class ExternalService {
 		}
 
 		return null;
+	}
+	
+	/**
+	 * This method will create suggestion response from list of suggestions.
+	 * @param suggestionList
+	 * @return
+	 */
+	private SuggestionResponse createSuggestionResponseFromSuggestionList(List<Suggestions> suggestionList) {
+		SuggestionResponse suggestionResponse = new SuggestionResponse();
+		List<RequirementSuggestions> requirementSuggestionsList = new ArrayList<>();
+		int count = 1;
+		for (Suggestions suggestions : suggestionList) {
+			List<Suggestions> suggestionsList = new ArrayList<>();
+			RequirementSuggestions  requirementSuggestions = new RequirementSuggestions();
+			if(suggestions != null) {
+				RequirementStatement requirementStatement = new RequirementStatement();
+				requirementStatement.setId(count);
+				requirementStatement.setRequirementStatement(suggestions.getSuggestion());
+				requirementSuggestions.setRequirements(requirementStatement);
+				count++;
+			}
+			suggestionsList.add(suggestions);
+			requirementSuggestions.setSuggestionResponse(suggestionsList);
+			requirementSuggestionsList.add(requirementSuggestions);
+		}
+		suggestionResponse.setSuggestions(requirementSuggestionsList);
+		return suggestionResponse;
 	}
 }

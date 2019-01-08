@@ -17,6 +17,7 @@ import com.experian.dto.ExperianFileRefreshRequest;
 import com.experian.dto.ExperianMatchedRequirementsRequest;
 import com.experian.dto.ExperianSearchRequest;
 import com.experian.dto.FileUploadResponse;
+import com.experian.dto.FileUploadResponseList;
 import com.experian.dto.chatbot.response.ChatBotScoreResponse;
 import com.experian.dto.neo4j.request.FinalNeo4JRequest;
 import com.experian.dto.neo4j.response.SuggestionResponse;
@@ -77,10 +78,8 @@ public class RequirementController {
 	 * @return
 	 */
 	@RequestMapping(value = "/add/match", method = RequestMethod.POST)
-	private FileUploadResponse addNewResourceMatched(@RequestBody ExperianMatchedRequirementsRequest request) {
-		FileUploadResponse response = null;
-		response = service.addMatchedRequirement(request.getMatchedRequirements());
-		return response;
+	private FileUploadResponseList addNewResourceMatched(@RequestBody ExperianMatchedRequirementsRequest request) {
+		return service.addMatchedRequirement(request.getMatchedRequirements());
 	}
 
 	/**
