@@ -13,21 +13,19 @@ import com.experian.dto.neo4j.response.taxation.Taxation;
  */
 public class TaxationResponse {
 
-	private List<Taxation> response;
+	private List<Taxation> taxationResponse;
 
 	/**
-	 * @return the response
+	 * @return the taxationResponse
 	 */
-	public List<Taxation> getResponse() {
-		return response;
+	public List<Taxation> getTaxationResponse() {
+		return taxationResponse;
 	}
 
 	/**
-	 * @param response the response to set
+	 * @param taxationResponse the taxationResponse to set
 	 */
-	public void setResponse(List<Taxation> response) {
-		this.response = response;
-	}
-	
-	
+	public void setTaxationResponse(List<Taxation> taxationResponse) {
+		this.taxationResponse = taxationResponse;
+	}	
 }

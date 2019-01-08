@@ -1,35 +1,30 @@
 /**
  * 
  */
-package com.experian.dto.aiml.request;
-
-import com.experian.dto.neo4j.response.WordCategoryResponse;
+package com.experian.dto.aiml.response;
 
 /**
  * @author manchanda.a
  *
  */
-public class AimlFileRefreshRequest {
-	
-	private WordCategoryResponse wordDataResponse;
+public class AimlTaxation {
+
+	private Integer id;
 	private String taxonomy_Level_1;
 	private String taxonomy_Level_2;
 	private String taxonomy_Level_3;
 	private String taxonomy_Level_4;
-	private String requirementStatement;
-	
-	
 	/**
-	 * @return the wordDataResponse
+	 * @return the id
 	 */
-	public WordCategoryResponse getWordDataResponse() {
-		return wordDataResponse;
+	public Integer getId() {
+		return id;
 	}
 	/**
-	 * @param wordDataResponse the wordDataResponse to set
+	 * @param id the id to set
 	 */
-	public void setWordDataResponse(WordCategoryResponse wordDataResponse) {
-		this.wordDataResponse = wordDataResponse;
+	public void setId(Integer id) {
+		this.id = id;
 	}
 	/**
 	 * @return the taxonomy_Level_1
@@ -79,19 +74,16 @@ public class AimlFileRefreshRequest {
 	public void setTaxonomy_Level_4(String taxonomy_Level_4) {
 		this.taxonomy_Level_4 = taxonomy_Level_4;
 	}
-	/**
-	 * @return the requirementStatement
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
 	 */
-	public String getRequirementStatement() {
-		return requirementStatement;
-	}
-	/**
-	 * @param requirementStatement the requirementStatement to set
-	 */
-	public void setRequirementStatement(String requirementStatement) {
-		this.requirementStatement = requirementStatement;
+	@Override
+	public String toString() {
+		return "AimlTaxationResponse [id=" + id + ", taxonomy_Level_1=" + taxonomy_Level_1 + ", taxonomy_Level_2="
+				+ taxonomy_Level_2 + ", taxonomy_Level_3=" + taxonomy_Level_3 + ", taxonomy_Level_4=" + taxonomy_Level_4
+				+ "]";
 	}
 	
 	
-
 }

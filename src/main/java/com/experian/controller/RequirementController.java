@@ -15,7 +15,6 @@ import com.experian.dto.ExperianFileRefreshRequest;
 import com.experian.dto.ExperianMatchedRequirementsRequest;
 import com.experian.dto.ExperianSearchRequest;
 import com.experian.dto.FileUploadResponse;
-import com.experian.dto.aiml.response.RefreshScoreResponse;
 import com.experian.dto.chatbot.response.ChatBotScoreResponse;
 import com.experian.dto.neo4j.request.FinalNeo4JRequest;
 import com.experian.dto.neo4j.response.SuggestionResponse;
@@ -64,8 +63,8 @@ public class RequirementController {
 	 * @return
 	 */
 	@RequestMapping(value = "/refresh", method = RequestMethod.POST)
-	private RefreshScoreResponse getScore(@RequestBody ExperianFileRefreshRequest request) {
-		return service.calculateScore(request);
+	private void getScore(@RequestBody ExperianFileRefreshRequest request) {
+
 	}
 
 	/**

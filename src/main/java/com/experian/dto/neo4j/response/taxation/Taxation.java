@@ -11,37 +11,45 @@ import java.util.List;
  */
 public class Taxation {
 
-	private String taxation_level_1;
-	private List<TaxationLevel2> level2;
-	
+	private Integer id;
+	private String level;
+	private List<TaxationLevel2> taxonomyLevel2POJOs;
 	/**
-	 * @return the taxation_level_1
+	 * @return the id
 	 */
-	public String getTaxation_level_1() {
-		return taxation_level_1;
+	public Integer getId() {
+		return id;
 	}
-	
 	/**
-	 * @param taxation_level_1 the taxation_level_1 to set
+	 * @param id the id to set
 	 */
-	public void setTaxation_level_1(String taxation_level_1) {
-		this.taxation_level_1 = taxation_level_1;
+	public void setId(Integer id) {
+		this.id = id;
 	}
-
 	/**
-	 * @return the level2
+	 * @return the level
 	 */
-	public List<TaxationLevel2> getLevel2() {
-		return level2;
+	public String getLevel() {
+		return level;
 	}
-
 	/**
-	 * @param level2 the level2 to set
+	 * @param level the level to set
 	 */
-	public void setLevel2(List<TaxationLevel2> level2) {
-		this.level2 = level2;
+	public void setLevel(String level) {
+		this.level = level;
 	}
-
+	/**
+	 * @return the taxonomyLevel2POJOs
+	 */
+	public List<TaxationLevel2> getTaxonomyLevel2POJOs() {
+		return taxonomyLevel2POJOs;
+	}
+	/**
+	 * @param taxonomyLevel2POJOs the taxonomyLevel2POJOs to set
+	 */
+	public void setTaxonomyLevel2POJOs(List<TaxationLevel2> taxonomyLevel2POJOs) {
+		this.taxonomyLevel2POJOs = taxonomyLevel2POJOs;
+	}
 	
 	
 }

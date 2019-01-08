@@ -10,7 +10,7 @@ package com.experian.dto.neo4j;
 public class RequirementStatement {
 
 	private int id;
-	private String requirement;
+	private String requirementStatement;
 	
 	/**
 	 * @return the id
@@ -18,25 +18,26 @@ public class RequirementStatement {
 	public int getId() {
 		return id;
 	}
+	
 	/**
 	 * @param id the id to set
 	 */
 	public void setId(int id) {
 		this.id = id;
 	}
-	
+
 	/**
-	 * @return the requirement
+	 * @return the requirementStatement
 	 */
-	public String getRequirement() {
-		return requirement;
+	public String getRequirementStatement() {
+		return requirementStatement;
 	}
-	
+
 	/**
-	 * @param requirement the requirement to set
+	 * @param requirementStatement the requirementStatement to set
 	 */
-	public void setRequirement(String requirement) {
-		this.requirement = requirement;
+	public void setRequirementStatement(String requirementStatement) {
+		this.requirementStatement = requirementStatement;
 	}
 	
 	

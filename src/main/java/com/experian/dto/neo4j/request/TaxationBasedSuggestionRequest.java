@@ -28,6 +28,14 @@ public class TaxationBasedSuggestionRequest {
 	public void setRequest(List<TaxationBasedSuggestion> request) {
 		this.request = request;
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "TaxationBasedSuggestionRequest [request=" + request + "]";
+	}
 	
 	
 }

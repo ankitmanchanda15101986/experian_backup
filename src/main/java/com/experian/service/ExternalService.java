@@ -14,13 +14,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
-import com.experian.dto.ExperianFileRefreshRequest;
+import com.experian.dto.ExperianFileRequest;
 import com.experian.dto.FileUploadResponse;
 import com.experian.dto.FileUploadResponseList;
-import com.experian.dto.aiml.request.AIMLFileRequest;
+import com.experian.dto.aiml.request.AimlQualityScoreRequest;
+import com.experian.dto.aiml.request.AimlTaxationRequest;
 import com.experian.dto.aiml.response.AimlFileFinalResponse;
 import com.experian.dto.aiml.response.AimlFileResponse;
-import com.experian.dto.aiml.response.RefreshScoreResponse;
+import com.experian.dto.aiml.response.AimlQualityScoreResponse;
+import com.experian.dto.aiml.response.AimlTaxationResponse;
 import com.experian.dto.chatbot.request.ChatBotScoreRequest;
 import com.experian.dto.chatbot.response.ChatBotScoreResponse;
 import com.experian.dto.neo4j.RequirementStatement;
@@ -31,6 +33,7 @@ import com.experian.dto.neo4j.request.TaxationBasedSuggestionRequest;
 import com.experian.dto.neo4j.response.SuggestionResponse;
 import com.experian.dto.neo4j.response.TaxationResponse;
 import com.experian.dto.neo4j.response.WordCategoryResponse;
+import com.experian.mapper.ExperianAIMLMapper;
 import com.experian.mapper.ExperianNeo4JMapper;
 
 import org.springframework.stereotype.Service;
@@ -52,8 +55,14 @@ public class ExternalService {
 	@Autowired
 	private ExperianNeo4JMapper neo4jMapper;
 
-	@Value("${service.aiml.processfile.uri}")
-	private String aimlProcessFileUri;
+	@Autowired
+	private ExperianAIMLMapper aimlMapper;
+
+	@Value("${service.aiml.taxation.uri}")
+	private String aimlGetTaxationUri;
+	
+	@Value("${service.aiml.quality.score.uri}")
+	private String aimlGetQualityScoreUri;
 
 	@Value("${service.neo4j.suggestion.uri}")
 	private String neo4jSuggestionUri;
@@ -75,21 +84,36 @@ public class ExternalService {
 
 	/**
 	 * This method will call AI/ML service and pass requirement statement , in
-	 * return it will get level 1,2,3,4 and quality score of that statement.
+	 * return it will get taxation level 1,2,3,4.
 	 * 
 	 * @return
 	 */
-	public AimlFileFinalResponse processFileToAiml(AIMLFileRequest request) {
-		ResponseEntity<AimlFileFinalResponse> response = template.postForEntity(aimlProcessFileUri, request,
-				AimlFileFinalResponse.class);
+	public AimlTaxationResponse processFileToAimlToGetTaxation(AimlTaxationRequest request) {
+		System.out.println("aimlGetTaxationUri : "+aimlGetTaxationUri);
+		ResponseEntity<AimlTaxationResponse> response = template.postForEntity(aimlGetTaxationUri, request,
+				AimlTaxationResponse.class);
+		System.out.println("response.getBody() "+response.getBody());
 		return response.getBody();
 
 	}
 
 	/**
-	 * This method will call neo 4j service and pass requirement statement in return
-	 * it will get suggestions and match % from neo4j which internally uses elastic
-	 * search. suggestion
+	 * This method will call AI/ML service and pass requirement statement , in
+	 * return it will get quality score.
+	 * 
+	 * @return
+	 */
+	public AimlQualityScoreResponse processFileToAimlToGetQualityScore(AimlQualityScoreRequest request) {
+		ResponseEntity<AimlQualityScoreResponse> response = template.postForEntity(aimlGetQualityScoreUri, request,
+				AimlQualityScoreResponse.class);
+		return response.getBody();
+
+	}
+
+	/**
+	 * This method will call neo 4j service and pass requirement statement in
+	 * return it will get suggestions and match % from neo4j which internally
+	 * uses elastic search. suggestion
 	 * 
 	 * @param taxationBasedSuggestionRequest
 	 * @return
@@ -98,13 +122,14 @@ public class ExternalService {
 			TaxationBasedSuggestionRequest taxationBasedSuggestionRequest) {
 		ResponseEntity<SuggestionResponse> response = template.postForEntity(neo4jSuggestionUri,
 				taxationBasedSuggestionRequest, SuggestionResponse.class);
+		System.out.println(" response for suggestion "+response.getBody());
 		return response.getBody();
 	}
 
 	/**
-	 * This method will call neo 4j service and pass requirement statement in return
-	 * it will get suggestions and match % from neo4j which internally uses elastic
-	 * search.
+	 * This method will call neo 4j service and pass requirement statement in
+	 * return it will get suggestions and match % from neo4j which internally
+	 * uses elastic search.
 	 * 
 	 * @param taxationBasedSuggestionRequest
 	 * @return
@@ -113,33 +138,42 @@ public class ExternalService {
 		// Get Word count.
 		WordCategoryResponse wordCategoryResponse = getWordCategoryFromNeo4j();
 		if (wordCategoryResponse != null) {
-			AIMLFileRequest aIMLFileRequest = new AIMLFileRequest();
+			AimlQualityScoreRequest aimlQualityScoreRequest = new AimlQualityScoreRequest();
+			AimlTaxationRequest aimlTaxationRequest = new AimlTaxationRequest();
+			ExperianFileRequest experianFileRequest = new ExperianFileRequest();
+
 			List<RequirementStatement> requirementStatementList = new ArrayList<RequirementStatement>();
 			RequirementStatement requirementStatement = new RequirementStatement();
 			requirementStatement.setId(1);
-			requirementStatement.setRequirement(searchInput);
+			requirementStatement.setRequirementStatement(searchInput);
 			requirementStatementList.add(requirementStatement);
 
-			aIMLFileRequest.setRequirementStatement(requirementStatementList);
-			aIMLFileRequest.setWordCategory(wordCategoryResponse);
+			aimlTaxationRequest.setRequirementStatements(requirementStatementList);
+			aimlTaxationRequest.setWordCategory(wordCategoryResponse);
+			aimlQualityScoreRequest.setRequirementStatements(requirementStatementList);
+			experianFileRequest.setRequirementList(requirementStatementList);
 
-			// Call AIML to process request
-			AimlFileFinalResponse aimlResponse = processFileToAiml(aIMLFileRequest);
-			if (aimlResponse != null && !aimlResponse.getResponse().isEmpty()) {
-				// Call to get suggestion.
-				TaxationBasedSuggestionRequest taxationBasedSuggestionRequest = neo4jMapper
-						.getTaxationBasedSuggestionFromAimlResponse(aimlResponse);
-				SuggestionResponse suggestionResponse = processFileToNeo4jToGetSuggestions(
-						taxationBasedSuggestionRequest);
-				return suggestionResponse;
-			}
+			// Call AIML to process request to get taxation.
+			AimlTaxationResponse aimlTaxationResponse = processFileToAimlToGetTaxation(aimlTaxationRequest);
+
+			AimlQualityScoreResponse aimlQualityScoreRespnse = processFileToAimlToGetQualityScore(
+					aimlQualityScoreRequest);
+
+			AimlFileFinalResponse aimlFileFinalResponse = aimlMapper.mapQualityAndTaxationToGetFinalResponse(
+					experianFileRequest, aimlTaxationResponse, aimlQualityScoreRespnse);
+
+			// Call to get suggestion.
+			TaxationBasedSuggestionRequest taxationBasedSuggestionRequest = neo4jMapper
+					.getTaxationBasedSuggestionFromAimlResponse(aimlFileFinalResponse);
+			SuggestionResponse suggestionResponse = processFileToNeo4jToGetSuggestions(taxationBasedSuggestionRequest);
+			return suggestionResponse;
 		}
 		return null;
 	}
 
 	/**
-	 * This method will call neo4j with final request that will be saved in neo4j
-	 * database.
+	 * This method will call neo4j with final request that will be saved in
+	 * neo4j database.
 	 * 
 	 * @param request
 	 * @return
@@ -150,8 +184,8 @@ public class ExternalService {
 	}
 
 	/**
-	 * This method will call neo4j service to get list of word category and process
-	 * response.
+	 * This method will call neo4j service to get list of word category and
+	 * process response.
 	 * 
 	 * @return
 	 */
@@ -162,22 +196,9 @@ public class ExternalService {
 	}
 
 	/**
-	 * This method will call ai/ml and pass taxation level 1,2,3,4 and requirement
-	 * statement, in return it will get score.
-	 * 
-	 * @param request
-	 * @return
-	 */
-	public RefreshScoreResponse calculateScore(ExperianFileRefreshRequest request) {
-		ResponseEntity<RefreshScoreResponse> response = template.postForEntity(calculateScoreUri, request,
-				RefreshScoreResponse.class);
-		return response.getBody();
-	}
-
-	/**
-	 * This method will take string as an request parameter and then call ai/ml to
-	 * get taxation levels and quality score, and then neo4j to get suggestions
-	 * based on that it will pass combine it and prepare response.
+	 * This method will take string as an request parameter and then call ai/ml
+	 * to get taxation levels and quality score, and then neo4j to get
+	 * suggestions based on that it will pass combine it and prepare response.
 	 * 
 	 * @param requirement
 	 * @return
@@ -186,27 +207,39 @@ public class ExternalService {
 		// Get Word count.
 		WordCategoryResponse wordCategoryResponse = getWordCategoryFromNeo4j();
 		if (wordCategoryResponse != null) {
-			AIMLFileRequest aIMLFileRequest = new AIMLFileRequest();
+			AimlQualityScoreRequest aimlQualityScoreRequest = new AimlQualityScoreRequest();
+			AimlTaxationRequest aimlTaxationRequest = new AimlTaxationRequest();
+			ExperianFileRequest experianFileRequest = new ExperianFileRequest();
+
 			List<RequirementStatement> requirementStatementList = new ArrayList<RequirementStatement>();
 			RequirementStatement requirementStatement = new RequirementStatement();
 			requirementStatement.setId(1);
-			requirementStatement.setRequirement(requirement);
+			requirementStatement.setRequirementStatement(requirement);
 			requirementStatementList.add(requirementStatement);
 
-			aIMLFileRequest.setRequirementStatement(requirementStatementList);
-			aIMLFileRequest.setWordCategory(wordCategoryResponse);
+			aimlTaxationRequest.setRequirementStatements(requirementStatementList);
+			aimlTaxationRequest.setWordCategory(wordCategoryResponse);
+			aimlQualityScoreRequest.setRequirementStatements(requirementStatementList);
+			experianFileRequest.setRequirementList(requirementStatementList);
 
-			// Call AIML to process request
-			AimlFileFinalResponse aimlResponse = processFileToAiml(aIMLFileRequest);
-			if (aimlResponse != null) {
+			// Call AIML to process request to get taxation.
+			AimlTaxationResponse aimlTaxationResponse = processFileToAimlToGetTaxation(aimlTaxationRequest);
+			// Call AIML to process request to get quality score.
+			AimlQualityScoreResponse aimlQualityScoreRespnse = processFileToAimlToGetQualityScore(
+					aimlQualityScoreRequest);
+			// convert quality score and taxation into final response
+			AimlFileFinalResponse aimlFileFinalResponse = aimlMapper.mapQualityAndTaxationToGetFinalResponse(
+					experianFileRequest, aimlTaxationResponse, aimlQualityScoreRespnse);
+
+			if (aimlFileFinalResponse != null) {
 				// Call to get suggestion.
 				TaxationBasedSuggestionRequest taxationBasedSuggestionRequest = neo4jMapper
-						.getTaxationBasedSuggestionFromAimlResponse(aimlResponse);
+						.getTaxationBasedSuggestionFromAimlResponse(aimlFileFinalResponse);
 				SuggestionResponse suggestionResponse = processFileToNeo4jToGetSuggestions(
 						taxationBasedSuggestionRequest);
 				if (suggestionResponse != null) {
 					Map<AimlFileResponse, RequirementSuggestions> map = helper
-							.fetchMapBasedOnRequirementId(aimlResponse, suggestionResponse);
+							.fetchMapBasedOnRequirementId(aimlFileFinalResponse, suggestionResponse);
 					FileUploadResponseList responseList = helper.createFinalUploadResponseList(map);
 					if (!responseList.getResponse().isEmpty()) {
 						return responseList.getResponse().get(0);
@@ -218,8 +251,8 @@ public class ExternalService {
 	}
 
 	/**
-	 * This method will return response for matched case requirements. So Neo4j wont
-	 * be called again we have got any matching for that requirement.
+	 * This method will return response for matched case requirements. So Neo4j
+	 * wont be called again we have got any matching for that requirement.
 	 * 
 	 * @param suggestionList
 	 * @return
@@ -229,37 +262,40 @@ public class ExternalService {
 		List<RequirementSuggestions> requirementSuggestionsList = new ArrayList<>();
 		WordCategoryResponse wordCategoryResponse = getWordCategoryFromNeo4j();
 		if (wordCategoryResponse != null) {
-			AIMLFileRequest aIMLFileRequest = new AIMLFileRequest();
+			AimlQualityScoreRequest aimlQualityScoreRequest = new AimlQualityScoreRequest();
+			AimlTaxationRequest aimlTaxationRequest = new AimlTaxationRequest();
+			ExperianFileRequest experianFileRequest = new ExperianFileRequest();
+
 			List<RequirementStatement> requirementStatementList = new ArrayList<RequirementStatement>();
 			int count = 1;
 			for (Suggestions suggestions : suggestionList) {
 				RequirementStatement requirementStatement = new RequirementStatement();
 				requirementStatement.setId(count);
-				requirementStatement.setRequirement(suggestions.getSuggestion());
+				requirementStatement.setRequirementStatement(suggestions.getSuggestion());
 				count++;
 				requirementStatementList.add(requirementStatement);
-
-				// Creating requirement suggestions object.
-				RequirementSuggestions requirementSuggestions = new RequirementSuggestions();
-				requirementSuggestions.setRequirements(requirementStatement);
-				List<Suggestions> suggest = new ArrayList<>();
-				suggest.add(suggestions);
-				requirementSuggestions.setSuggestionResponse(suggest);
 			}
-			aIMLFileRequest.setRequirementStatement(requirementStatementList);
-			aIMLFileRequest.setWordCategory(wordCategoryResponse);
+			aimlTaxationRequest.setRequirementStatements(requirementStatementList);
+			aimlTaxationRequest.setWordCategory(wordCategoryResponse);
+			aimlQualityScoreRequest.setRequirementStatements(requirementStatementList);
+			experianFileRequest.setRequirementList(requirementStatementList);
 
-			// Call AIML to process request
-			AimlFileFinalResponse aimlResponse = processFileToAiml(aIMLFileRequest);
-			if (aimlResponse != null) {
-				SuggestionResponse suggestionResponse = new SuggestionResponse();
-				suggestionResponse.setSuggestions(requirementSuggestionsList);
-				Map<AimlFileResponse, RequirementSuggestions> map = helper.fetchMapBasedOnRequirementId(aimlResponse,
-						suggestionResponse);
-				FileUploadResponseList responseList = helper.createFinalUploadResponseList(map);
-				if (!responseList.getResponse().isEmpty()) {
-					return responseList.getResponse().get(0);
-				}
+			// Call AIML to process request to get taxation.
+			AimlTaxationResponse aimlTaxationResponse = processFileToAimlToGetTaxation(aimlTaxationRequest);
+			// Call AIML to process request to get quality score.
+			AimlQualityScoreResponse aimlQualityScoreRespnse = processFileToAimlToGetQualityScore(
+					aimlQualityScoreRequest);
+			// convert quality score and taxation into final response
+			AimlFileFinalResponse aimlFileFinalResponse = aimlMapper.mapQualityAndTaxationToGetFinalResponse(
+					experianFileRequest, aimlTaxationResponse, aimlQualityScoreRespnse);
+
+			SuggestionResponse suggestionResponse = new SuggestionResponse();
+			suggestionResponse.setSuggestions(requirementSuggestionsList);
+			Map<AimlFileResponse, RequirementSuggestions> map = helper.fetchMapBasedOnRequirementId(aimlFileFinalResponse,
+					suggestionResponse);
+			FileUploadResponseList responseList = helper.createFinalUploadResponseList(map);
+			if (!responseList.getResponse().isEmpty()) {
+				return responseList.getResponse().get(0);
 			}
 		}
 		return null;
@@ -267,7 +303,8 @@ public class ExternalService {
 
 	/**
 	 * This method will return response for no match case requirements. So Neo4j
-	 * wont be called again as we already have got requirements from matched set.
+	 * wont be called again as we already have got requirements from matched
+	 * set.
 	 * 
 	 * @param requirement
 	 * @return
@@ -276,22 +313,34 @@ public class ExternalService {
 		// Get Word count.
 		WordCategoryResponse wordCategoryResponse = getWordCategoryFromNeo4j();
 		if (wordCategoryResponse != null) {
-			AIMLFileRequest aIMLFileRequest = new AIMLFileRequest();
+			AimlQualityScoreRequest aimlQualityScoreRequest = new AimlQualityScoreRequest();
+			AimlTaxationRequest aimlTaxationRequest = new AimlTaxationRequest();
+			ExperianFileRequest experianFileRequest = new ExperianFileRequest();
+
 			List<RequirementStatement> requirementStatementList = new ArrayList<RequirementStatement>();
 			RequirementStatement requirementStatement = new RequirementStatement();
 			requirementStatement.setId(1);
-			requirementStatement.setRequirement(requirement);
+			requirementStatement.setRequirementStatement(requirement);
 			requirementStatementList.add(requirementStatement);
-			aIMLFileRequest.setRequirementStatement(requirementStatementList);
-			aIMLFileRequest.setWordCategory(wordCategoryResponse);
 
-			// Call AIML to process request
-			AimlFileFinalResponse aimlResponse = processFileToAiml(aIMLFileRequest);
-			if (aimlResponse != null) {
+			aimlTaxationRequest.setRequirementStatements(requirementStatementList);
+			aimlTaxationRequest.setWordCategory(wordCategoryResponse);
+			aimlQualityScoreRequest.setRequirementStatements(requirementStatementList);
+			experianFileRequest.setRequirementList(requirementStatementList);
+
+			// Call AIML to process request to get taxation.
+			AimlTaxationResponse aimlTaxationResponse = processFileToAimlToGetTaxation(aimlTaxationRequest);
+			// Call AIML to process request to get quality score.
+			AimlQualityScoreResponse aimlQualityScoreRespnse = processFileToAimlToGetQualityScore(
+					aimlQualityScoreRequest);
+			// convert quality score and taxation into final response
+			AimlFileFinalResponse aimlFileFinalResponse = aimlMapper.mapQualityAndTaxationToGetFinalResponse(
+					experianFileRequest, aimlTaxationResponse, aimlQualityScoreRespnse);
+			if (aimlFileFinalResponse != null) {
 				SuggestionResponse suggestionResponse = new SuggestionResponse();
 				suggestionResponse.setSuggestions(new ArrayList<>());
-				Map<AimlFileResponse, RequirementSuggestions> map = helper.fetchMapBasedOnRequirementId(aimlResponse,
-						suggestionResponse);
+				Map<AimlFileResponse, RequirementSuggestions> map = helper
+						.fetchMapBasedOnRequirementId(aimlFileFinalResponse, suggestionResponse);
 				FileUploadResponseList responseList = helper.createFinalUploadResponseList(map);
 				if (!responseList.getResponse().isEmpty()) {
 					return responseList.getResponse().get(0);
@@ -315,6 +364,7 @@ public class ExternalService {
 
 	/**
 	 * This method will calculate chatbot score.
+	 * 
 	 * @param requirement
 	 * @return
 	 */
@@ -325,8 +375,8 @@ public class ExternalService {
 			ChatBotScoreRequest request = new ChatBotScoreRequest();
 			request.setRequirement(requirement);
 			request.setWordCategory(wordCategoryResponse.getWordCategory());
-			ResponseEntity<ChatBotScoreResponse> response = template.postForEntity(
-					chatbotCalculateScoreUri,request, ChatBotScoreResponse.class);
+			ResponseEntity<ChatBotScoreResponse> response = template.postForEntity(chatbotCalculateScoreUri, request,
+					ChatBotScoreResponse.class);
 			return response.getBody();
 		}
 

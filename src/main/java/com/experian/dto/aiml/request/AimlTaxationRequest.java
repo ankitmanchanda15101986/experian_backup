@@ -12,10 +12,10 @@ import com.experian.dto.neo4j.response.WordCategoryResponse;
  * @author manchanda.a
  *
  */
-public class AIMLFileRequest {
+public class AimlTaxationRequest {
 
 	private WordCategoryResponse wordCategory;
-	private List<RequirementStatement> requirementStatement;
+	private List<RequirementStatement> requirementStatements;
 	
 	/**
 	 * @return the wordCategory
@@ -30,17 +30,18 @@ public class AIMLFileRequest {
 		this.wordCategory = wordCategory;
 	}
 	/**
-	 * @return the requirementStatement
+	 * @return the requirementStatements
 	 */
-	public List<RequirementStatement> getRequirementStatement() {
-		return requirementStatement;
+	public List<RequirementStatement> getRequirementStatements() {
+		return requirementStatements;
 	}
 	/**
-	 * @param requirementStatement the requirementStatement to set
+	 * @param requirementStatements the requirementStatements to set
 	 */
-	public void setRequirementStatement(List<RequirementStatement> requirementStatement) {
-		this.requirementStatement = requirementStatement;
+	public void setRequirementStatements(List<RequirementStatement> requirementStatements) {
+		this.requirementStatements = requirementStatements;
 	}
+
 	
 	
 	

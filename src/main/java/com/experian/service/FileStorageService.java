@@ -29,9 +29,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.experian.dto.ExperianFileRequest;
 import com.experian.dto.FileUploadResponseList;
-import com.experian.dto.aiml.request.AIMLFileRequest;
+import com.experian.dto.aiml.request.AimlQualityScoreRequest;
+import com.experian.dto.aiml.request.AimlTaxationRequest;
 import com.experian.dto.aiml.response.AimlFileFinalResponse;
 import com.experian.dto.aiml.response.AimlFileResponse;
+import com.experian.dto.aiml.response.AimlQualityScoreResponse;
+import com.experian.dto.aiml.response.AimlTaxationResponse;
 import com.experian.dto.neo4j.RequirementStatement;
 import com.experian.dto.neo4j.RequirementSuggestions;
 import com.experian.dto.neo4j.request.TaxationBasedSuggestionRequest;
@@ -105,21 +108,30 @@ public class FileStorageService {
             if(resource.exists()) {
             	// it will read data from file and convert it to list of object.
             	ExperianFileRequest experianFileRequest = readFileData(resource);
-            	System.out.println("experianFileRequest : "+experianFileRequest); 
+            	
             	// it will call neo4j service to get master data.
             	WordCategoryResponse wordCategoryResponse = externalService.getWordCategoryFromNeo4j();
             	logger.debug("Word category response ", wordCategoryResponse.getWordCategory().toString());
             	
-            	// it will call AI/ML Service to fetch score .
-            	AIMLFileRequest aimlFileRequest = aimlMapper.mapBatchRequestToAIMLRequest(wordCategoryResponse, experianFileRequest);
-            	AimlFileFinalResponse aimlFileFinalResponse = externalService.processFileToAiml(aimlFileRequest);
-            	logger.debug("Aiml file response ", aimlFileFinalResponse.getResponse().toString());
+            	// it will call AI/ML Service to get taxation .
+            	AimlTaxationRequest aimlTaxationRequest = aimlMapper.mapBatchRequestToAIMLTaxationRequest(wordCategoryResponse, experianFileRequest);
+            	AimlTaxationResponse aimlTaxationResponse = externalService.processFileToAimlToGetTaxation(aimlTaxationRequest);
+            	logger.debug("Aiml taxation response ", aimlTaxationResponse.getTaxonomyClassification().toString());
             	
+            	// it will call AI/ML Service to get quality score. 
+            	AimlQualityScoreRequest aimlQualityScoreRequest = aimlMapper.mapBatchRequestToAimlQualityScoreRequest(experianFileRequest);
+            	AimlQualityScoreResponse aimlQualityScoreResponse = externalService.processFileToAimlToGetQualityScore(aimlQualityScoreRequest);
+            	
+            	// it will convert file request , quality score and taxation to get file final response.
+            	AimlFileFinalResponse aimlFileFinalResponse = aimlMapper.mapQualityAndTaxationToGetFinalResponse(experianFileRequest, aimlTaxationResponse, aimlQualityScoreResponse);
+            	System.out.println("Aiml final response "+aimlFileFinalResponse.getResponse().size());
+            	// Map quality score response and taxation response to create single object.
             	// it will call neo4j service to get suggestions.
-            	TaxationBasedSuggestionRequest taxationBasedSuggestionRequest =neo4jMapper.getTaxationBasedSuggestionFromAimlResponse(aimlFileFinalResponse);
+            	TaxationBasedSuggestionRequest taxationBasedSuggestionRequest = neo4jMapper.getTaxationBasedSuggestionFromAimlResponse(aimlFileFinalResponse);
+            	System.out.println("taxationBasedSuggestionRequest : "+taxationBasedSuggestionRequest.toString());
             	SuggestionResponse suggestionResponse = externalService.processFileToNeo4jToGetSuggestions(taxationBasedSuggestionRequest);
             	logger.debug("Neo4j file suggestion ", suggestionResponse.getSuggestions().toString());
-       
+            	System.out.println("Neo4j file suggestion "+suggestionResponse.getSuggestions().toString());
             	// it will create final response
             	Map<AimlFileResponse, RequirementSuggestions> map = helper.fetchMapBasedOnRequirementId(aimlFileFinalResponse, suggestionResponse);
             	return helper.createFinalUploadResponseList(map);
@@ -155,8 +167,8 @@ public class FileStorageService {
                 Row currentRow = iterator.next();
                 RequirementStatement requirement = new RequirementStatement();
                 requirement.setId(count);
-                requirement.setRequirement(currentRow.getCell(0).getStringCellValue());
-                logger.info("requirement number "+requirement.getId()+" requirement : "+requirement.getRequirement());
+                requirement.setRequirementStatement(currentRow.getCell(0).getStringCellValue());
+                logger.info("requirement number "+requirement.getId()+" requirement : "+requirement.getRequirementStatement());
                 requirementList.add(requirement);
                 count++;
             }
