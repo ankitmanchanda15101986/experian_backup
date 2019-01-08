@@ -128,10 +128,10 @@ public class FileStorageService {
             	// Map quality score response and taxation response to create single object.
             	// it will call neo4j service to get suggestions.
             	TaxationBasedSuggestionRequest taxationBasedSuggestionRequest = neo4jMapper.getTaxationBasedSuggestionFromAimlResponse(aimlFileFinalResponse);
-            	System.out.println("taxationBasedSuggestionRequest : "+taxationBasedSuggestionRequest.toString());
+
             	SuggestionResponse suggestionResponse = externalService.processFileToNeo4jToGetSuggestions(taxationBasedSuggestionRequest);
             	logger.debug("Neo4j file suggestion ", suggestionResponse.getSuggestions().toString());
-            	System.out.println("Neo4j file suggestion "+suggestionResponse.getSuggestions().toString());
+            	
             	// it will create final response
             	Map<AimlFileResponse, RequirementSuggestions> map = helper.fetchMapBasedOnRequirementId(aimlFileFinalResponse, suggestionResponse);
             	return helper.createFinalUploadResponseList(map);

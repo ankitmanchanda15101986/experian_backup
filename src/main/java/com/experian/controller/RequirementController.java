@@ -3,6 +3,8 @@
  */
 package com.experian.controller;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,7 @@ import com.experian.dto.chatbot.response.ChatBotScoreResponse;
 import com.experian.dto.neo4j.request.FinalNeo4JRequest;
 import com.experian.dto.neo4j.response.SuggestionResponse;
 import com.experian.dto.neo4j.response.TaxationResponse;
+import com.experian.dto.neo4j.response.taxation.Taxation;
 import com.experian.service.ExternalService;
 import com.experian.validator.Validator;
 
@@ -106,7 +109,7 @@ public class RequirementController {
 	 * This controller will be called to retrieve taxation mapping.
 	 */
 	@RequestMapping(value = "/getTaxation", method = RequestMethod.GET)
-	private TaxationResponse getTaxation() {
+	private List<Taxation> getTaxation() {
 		return service.getTaxation();
 	}
 	

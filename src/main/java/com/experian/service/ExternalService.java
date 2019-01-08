@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
@@ -33,6 +35,7 @@ import com.experian.dto.neo4j.request.TaxationBasedSuggestionRequest;
 import com.experian.dto.neo4j.response.SuggestionResponse;
 import com.experian.dto.neo4j.response.TaxationResponse;
 import com.experian.dto.neo4j.response.WordCategoryResponse;
+import com.experian.dto.neo4j.response.taxation.Taxation;
 import com.experian.mapper.ExperianAIMLMapper;
 import com.experian.mapper.ExperianNeo4JMapper;
 
@@ -89,10 +92,8 @@ public class ExternalService {
 	 * @return
 	 */
 	public AimlTaxationResponse processFileToAimlToGetTaxation(AimlTaxationRequest request) {
-		System.out.println("aimlGetTaxationUri : "+aimlGetTaxationUri);
 		ResponseEntity<AimlTaxationResponse> response = template.postForEntity(aimlGetTaxationUri, request,
 				AimlTaxationResponse.class);
-		System.out.println("response.getBody() "+response.getBody());
 		return response.getBody();
 
 	}
@@ -122,7 +123,6 @@ public class ExternalService {
 			TaxationBasedSuggestionRequest taxationBasedSuggestionRequest) {
 		ResponseEntity<SuggestionResponse> response = template.postForEntity(neo4jSuggestionUri,
 				taxationBasedSuggestionRequest, SuggestionResponse.class);
-		System.out.println(" response for suggestion "+response.getBody());
 		return response.getBody();
 	}
 
@@ -357,8 +357,9 @@ public class ExternalService {
 	 * 
 	 * @return
 	 */
-	public TaxationResponse getTaxation() {
-		ResponseEntity<TaxationResponse> response = template.getForEntity(taxationUri, TaxationResponse.class);
+	public List<Taxation> getTaxation() {
+		ResponseEntity<List<Taxation>> response = template.exchange(taxationUri,HttpMethod.GET, null, new ParameterizedTypeReference<List<Taxation>>() {
+		});
 		return response.getBody();
 	}
 
