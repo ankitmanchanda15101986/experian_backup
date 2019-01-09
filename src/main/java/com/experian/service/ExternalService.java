@@ -63,7 +63,7 @@ public class ExternalService {
 
 	@Value("${service.aiml.taxation.uri}")
 	private String aimlGetTaxationUri;
-	
+
 	@Value("${service.aiml.quality.score.uri}")
 	private String aimlGetQualityScoreUri;
 
@@ -190,8 +190,9 @@ public class ExternalService {
 	 * @return
 	 */
 	public WordCategoryResponse getWordCategoryFromNeo4j() {
-		ResponseEntity<List<WordCategory>> response = template.exchange(wordCategoryUri,HttpMethod.GET, null, new ParameterizedTypeReference<List<WordCategory>>() {
-		});
+		ResponseEntity<List<WordCategory>> response = template.exchange(wordCategoryUri, HttpMethod.GET, null,
+				new ParameterizedTypeReference<List<WordCategory>>() {
+				});
 		WordCategoryResponse wordCategoryResponse = new WordCategoryResponse();
 		wordCategoryResponse.setWordCategory(response.getBody());
 		return wordCategoryResponse;
@@ -289,8 +290,8 @@ public class ExternalService {
 			AimlFileFinalResponse aimlFileFinalResponse = aimlMapper.mapQualityAndTaxationToGetFinalResponse(
 					experianFileRequest, aimlTaxationResponse, aimlQualityScoreRespnse);
 			SuggestionResponse suggestionResponse = createSuggestionResponseFromSuggestionList(suggestionList);
-			Map<AimlFileResponse, RequirementSuggestions> map = helper.fetchMapBasedOnRequirementId(aimlFileFinalResponse,
-					suggestionResponse);
+			Map<AimlFileResponse, RequirementSuggestions> map = helper
+					.fetchMapBasedOnRequirementId(aimlFileFinalResponse, suggestionResponse);
 			FileUploadResponseList responseList = helper.createFinalUploadResponseList(map);
 			return responseList;
 		}
@@ -338,7 +339,7 @@ public class ExternalService {
 				Map<AimlFileResponse, RequirementSuggestions> map = helper
 						.fetchMapBasedOnRequirementId(aimlFileFinalResponse, suggestionResponse);
 				FileUploadResponseList responseList = helper.createFinalUploadResponseList(map);
-				if(responseList != null) {
+				if (responseList != null) {
 					return responseList.getResponse().get(0);
 				}
 			}
@@ -354,8 +355,9 @@ public class ExternalService {
 	 * @return
 	 */
 	public List<Taxation> getTaxation() {
-		ResponseEntity<List<Taxation>> response = template.exchange(taxationUri,HttpMethod.GET, null, new ParameterizedTypeReference<List<Taxation>>() {
-		});
+		ResponseEntity<List<Taxation>> response = template.exchange(taxationUri, HttpMethod.GET, null,
+				new ParameterizedTypeReference<List<Taxation>>() {
+				});
 		return response.getBody();
 	}
 
@@ -379,9 +381,10 @@ public class ExternalService {
 
 		return null;
 	}
-	
+
 	/**
 	 * This method will create suggestion response from list of suggestions.
+	 * 
 	 * @param suggestionList
 	 * @return
 	 */
@@ -391,8 +394,8 @@ public class ExternalService {
 		int count = 1;
 		for (Suggestions suggestions : suggestionList) {
 			List<Suggestions> suggestionsList = new ArrayList<>();
-			RequirementSuggestions  requirementSuggestions = new RequirementSuggestions();
-			if(suggestions != null) {
+			RequirementSuggestions requirementSuggestions = new RequirementSuggestions();
+			if (suggestions != null) {
 				RequirementStatement requirementStatement = new RequirementStatement();
 				requirementStatement.setID(count);
 				requirementStatement.setRequirementStatement(suggestions.getSuggestion());
@@ -405,5 +408,32 @@ public class ExternalService {
 		}
 		suggestionResponse.setSuggestions(requirementSuggestionsList);
 		return suggestionResponse;
+	}
+
+	/**
+	 * This method will calculate get quality score based on requirement.
+	 * @param requirement
+	 * @return
+	 */
+	public AimlQualityScoreResponse refreshQualityScore(String requirement) {
+		// Get Word count.
+		WordCategoryResponse wordCategoryResponse = getWordCategoryFromNeo4j();
+		if (wordCategoryResponse != null) {
+			AimlQualityScoreRequest aimlQualityScoreRequest = new AimlQualityScoreRequest();
+			List<RequirementStatement> requirementStatementList = new ArrayList<RequirementStatement>();
+			RequirementStatement requirementStatement = new RequirementStatement();
+			requirementStatement.setID(1);
+			requirementStatement.setRequirementStatement(requirement);
+			requirementStatementList.add(requirementStatement);
+
+			aimlQualityScoreRequest.setWordCategory(wordCategoryResponse.getWordCategory());
+			aimlQualityScoreRequest.setRequirementStatements(requirementStatementList);
+
+			// Call AIML to process request to get quality score.
+			AimlQualityScoreResponse aimlQualityScoreRespnse = processFileToAimlToGetQualityScore(
+					aimlQualityScoreRequest);
+			return aimlQualityScoreRespnse;
+		}
+		return null;
 	}
 }

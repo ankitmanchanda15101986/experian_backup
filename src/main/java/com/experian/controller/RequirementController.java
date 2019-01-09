@@ -18,10 +18,10 @@ import com.experian.dto.ExperianMatchedRequirementsRequest;
 import com.experian.dto.ExperianSearchRequest;
 import com.experian.dto.FileUploadResponse;
 import com.experian.dto.FileUploadResponseList;
+import com.experian.dto.aiml.response.AimlQualityScoreResponse;
 import com.experian.dto.chatbot.response.ChatBotScoreResponse;
 import com.experian.dto.neo4j.request.FinalNeo4JRequest;
 import com.experian.dto.neo4j.response.SuggestionResponse;
-import com.experian.dto.neo4j.response.TaxationResponse;
 import com.experian.dto.neo4j.response.taxation.Taxation;
 import com.experian.service.ExternalService;
 import com.experian.validator.Validator;
@@ -67,8 +67,8 @@ public class RequirementController {
 	 * @return
 	 */
 	@RequestMapping(value = "/refresh", method = RequestMethod.POST)
-	private void getScore(@RequestBody ExperianFileRefreshRequest request) {
-
+	private AimlQualityScoreResponse getScore(@RequestBody ExperianSearchRequest request) {
+		return service.refreshQualityScore(request.getRequirement());
 	}
 
 	/**
@@ -116,7 +116,7 @@ public class RequirementController {
 	 * This controller will be called when chatbot send request to get quality score.
 	 * @param request
 	 */
-	@RequestMapping(value="/chatbot/quality/score", method = RequestMethod.POST)
+	@RequestMapping(value="/chatbot/score", method = RequestMethod.POST)
 	private ChatBotScoreResponse getChatbotQualityScore(@RequestBody ExperianSearchRequest request) {
 		return service.calculateChatBotScore(request.getRequirement());
 	}
