@@ -5,7 +5,6 @@ package com.experian.entity;
 
 
 import javax.persistence.*;
-import java.util.Set;
 
 /**
  * @author Manchanda's
@@ -13,25 +12,30 @@ import java.util.Set;
  */
 
 @Entity
-@Table(name = "user")
-public class User {
+@Table(name = "authentication")
+public class Authentication {
 	
 	@Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-	private Long id;
+	private int id;
 	
+	@Column(name="username")
 	private String username;
+	
+	@Column(name="password")
     private String password;
+	
+	
 	/**
 	 * @return the id
 	 */
-	public Long getId() {
+	public int getId() {
 		return id;
 	}
 	/**
 	 * @param id the id to set
 	 */
-	public void setId(Long id) {
+	public void setId(int id) {
 		this.id = id;
 	}
 	/**

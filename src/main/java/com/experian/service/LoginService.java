@@ -3,12 +3,16 @@
  */
 package com.experian.service;
 
+import java.util.List;
+
+import javax.annotation.Resource;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.experian.UserRepository;
 import com.experian.dto.LoginRequest;
-import com.experian.entity.User;
+import com.experian.entity.Authentication;
+import com.experian.repository.UserRepository;
 
 /**
  * @author Manchanda's
@@ -20,38 +24,28 @@ public class LoginService {
 
 	@Autowired
     private UserRepository userRepository;
-	
+
 	/**
 	 * This method will check whether user is authorize or not.
 	 * @param login
 	 * @return
 	 */
 	public boolean isUserAuthorized(LoginRequest login) {
-		saveUser();
-		User user = userRepository.findByUsername(login.getUserName());
-		if(user != null) {
-			if(login.getPassword().equalsIgnoreCase(user.getPassword())) {
-				return true;
+		List<Authentication> userList = userRepository.findAll();
+		System.out.println("userList "+userList.size());
+		if(!userList.isEmpty()) {
+			for (Authentication user : userList) {
+				System.out.println("user.getUsername "+user.getUsername());
+				System.out.println("user.getPassword "+user.getPassword());
+				System.out.println("login.getUsername "+login.getUserName());
+				System.out.println("login.getPassword "+login.getPassword());
+				if(login.getUserName().equalsIgnoreCase(user.getUsername()) && 
+						login.getPassword().equalsIgnoreCase(user.getPassword())) {
+					return true;
+				}
 			}
+			
 		}
 		return false;
 	}
-	
-	/**
-	 * This internal method will saver user everytime as it is h2 database.
-	 */
-	private void saveUser() {
-		User user = new User();
-		user.setUsername("test1");
-		user.setPassword("password");
-		userRepository.save(user);
-		
-		User user2 = new User();
-		user2.setUsername("test2");
-		user2.setPassword("password");
-		userRepository.save(user2);
-
-		
-	}
-
 }

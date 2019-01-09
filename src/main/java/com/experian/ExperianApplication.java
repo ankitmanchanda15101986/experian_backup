@@ -1,11 +1,12 @@
 package com.experian;
 
-
+import org.h2.server.web.WebServlet;
 import org.springframework.boot.SpringApplication;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -20,12 +21,18 @@ public class ExperianApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(ExperianApplication.class, args);
 	}
-	
+
 	@Bean
 	public RestTemplate restTemplate(RestTemplateBuilder builder) {
 		builder.build().getMessageConverters().add(new MappingJackson2HttpMessageConverter());
 		builder.build().getMessageConverters().add(new StringHttpMessageConverter());
-	   return builder.build();
+		return builder.build();
+	}
+
+	@Bean
+	public ServletRegistrationBean h2servletRegistration() {
+		ServletRegistrationBean registrationBean = new ServletRegistrationBean(new WebServlet());
+		registrationBean.addUrlMappings("/console/*");
+		return registrationBean;
 	}
 }
-
