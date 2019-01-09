@@ -14,21 +14,8 @@ import com.experian.dto.neo4j.response.WordCategoryResponse;
  */
 public class AimlTaxationRequest {
 
-	private WordCategoryResponse wordCategory;
 	private List<RequirementStatement> requirementStatements;
 	
-	/**
-	 * @return the wordCategory
-	 */
-	public WordCategoryResponse getWordCategory() {
-		return wordCategory;
-	}
-	/**
-	 * @param wordCategory the wordCategory to set
-	 */
-	public void setWordCategory(WordCategoryResponse wordCategory) {
-		this.wordCategory = wordCategory;
-	}
 	/**
 	 * @return the requirementStatements
 	 */

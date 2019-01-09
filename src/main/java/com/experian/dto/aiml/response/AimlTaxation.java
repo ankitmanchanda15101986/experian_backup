@@ -8,23 +8,26 @@ package com.experian.dto.aiml.response;
  *
  */
 public class AimlTaxation {
-
-	private Integer id;
+	
 	private String taxonomy_Level_1;
+	private Integer ID;
 	private String taxonomy_Level_2;
 	private String taxonomy_Level_3;
 	private String taxonomy_Level_4;
+	
+	
+	
 	/**
-	 * @return the id
+	 * @return the iD
 	 */
-	public Integer getId() {
-		return id;
+	public Integer getID() {
+		return ID;
 	}
 	/**
-	 * @param id the id to set
+	 * @param iD the iD to set
 	 */
-	public void setId(Integer id) {
-		this.id = id;
+	public void setID(Integer iD) {
+		ID = iD;
 	}
 	/**
 	 * @return the taxonomy_Level_1
@@ -80,7 +83,7 @@ public class AimlTaxation {
 	 */
 	@Override
 	public String toString() {
-		return "AimlTaxationResponse [id=" + id + ", taxonomy_Level_1=" + taxonomy_Level_1 + ", taxonomy_Level_2="
+		return "AimlTaxationResponse [id=" + ID + ", taxonomy_Level_1=" + taxonomy_Level_1 + ", taxonomy_Level_2="
 				+ taxonomy_Level_2 + ", taxonomy_Level_3=" + taxonomy_Level_3 + ", taxonomy_Level_4=" + taxonomy_Level_4
 				+ "]";
 	}

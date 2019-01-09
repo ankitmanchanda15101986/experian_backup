@@ -111,20 +111,22 @@ public class FileStorageService {
             	
             	// it will call neo4j service to get master data.
             	WordCategoryResponse wordCategoryResponse = externalService.getWordCategoryFromNeo4j();
-            	logger.debug("Word category response ", wordCategoryResponse.getWordCategory().toString());
-            	
+            	logger.info("Word category response ", wordCategoryResponse.getWordCategory().toString());
+            	System.out.println("Word category response "+wordCategoryResponse.getWordCategory().size());
             	// it will call AI/ML Service to get taxation .
-            	AimlTaxationRequest aimlTaxationRequest = aimlMapper.mapBatchRequestToAIMLTaxationRequest(wordCategoryResponse, experianFileRequest);
+            	AimlTaxationRequest aimlTaxationRequest = aimlMapper.mapBatchRequestToAIMLTaxationRequest(experianFileRequest);
             	AimlTaxationResponse aimlTaxationResponse = externalService.processFileToAimlToGetTaxation(aimlTaxationRequest);
-            	logger.debug("Aiml taxation response ", aimlTaxationResponse.getTaxonomyClassification().toString());
+            	logger.info("Aiml taxation response ", aimlTaxationResponse.getTaxonomyClassification().size());
+            	System.out.println("Aiml taxation response "+aimlTaxationResponse.getTaxonomyClassification().size());
             	
             	// it will call AI/ML Service to get quality score. 
-            	AimlQualityScoreRequest aimlQualityScoreRequest = aimlMapper.mapBatchRequestToAimlQualityScoreRequest(experianFileRequest);
+            	AimlQualityScoreRequest aimlQualityScoreRequest = aimlMapper.mapBatchRequestToAimlQualityScoreRequest(wordCategoryResponse, experianFileRequest);
             	AimlQualityScoreResponse aimlQualityScoreResponse = externalService.processFileToAimlToGetQualityScore(aimlQualityScoreRequest);
+            	System.out.println("Aiml quality score response "+aimlQualityScoreResponse.getQualityScore().size());
             	
             	// it will convert file request , quality score and taxation to get file final response.
             	AimlFileFinalResponse aimlFileFinalResponse = aimlMapper.mapQualityAndTaxationToGetFinalResponse(experianFileRequest, aimlTaxationResponse, aimlQualityScoreResponse);
-            	System.out.println("Aiml final response "+aimlFileFinalResponse.getResponse().size());
+            	logger.info("Aiml final response ", aimlFileFinalResponse.getResponse().size());
             	// Map quality score response and taxation response to create single object.
             	// it will call neo4j service to get suggestions.
             	TaxationBasedSuggestionRequest taxationBasedSuggestionRequest = neo4jMapper.getTaxationBasedSuggestionFromAimlResponse(aimlFileFinalResponse);
@@ -166,9 +168,9 @@ public class FileStorageService {
             while (iterator.hasNext()) {
                 Row currentRow = iterator.next();
                 RequirementStatement requirement = new RequirementStatement();
-                requirement.setId(count);
+                requirement.setID(count);
                 requirement.setRequirementStatement(currentRow.getCell(0).getStringCellValue());
-                logger.info("requirement number "+requirement.getId()+" requirement : "+requirement.getRequirementStatement());
+                logger.info("requirement number "+requirement.getID()+" requirement : "+requirement.getRequirementStatement());
                 requirementList.add(requirement);
                 count++;
             }

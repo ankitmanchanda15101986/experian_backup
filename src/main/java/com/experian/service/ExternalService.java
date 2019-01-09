@@ -33,7 +33,6 @@ import com.experian.dto.neo4j.Suggestions;
 import com.experian.dto.neo4j.request.FinalNeo4JRequest;
 import com.experian.dto.neo4j.request.TaxationBasedSuggestionRequest;
 import com.experian.dto.neo4j.response.SuggestionResponse;
-import com.experian.dto.neo4j.response.TaxationResponse;
 import com.experian.dto.neo4j.response.WordCategory;
 import com.experian.dto.neo4j.response.WordCategoryResponse;
 import com.experian.dto.neo4j.response.taxation.Taxation;
@@ -145,12 +144,12 @@ public class ExternalService {
 
 			List<RequirementStatement> requirementStatementList = new ArrayList<RequirementStatement>();
 			RequirementStatement requirementStatement = new RequirementStatement();
-			requirementStatement.setId(1);
+			requirementStatement.setID(1);
 			requirementStatement.setRequirementStatement(searchInput);
 			requirementStatementList.add(requirementStatement);
 
 			aimlTaxationRequest.setRequirementStatements(requirementStatementList);
-			aimlTaxationRequest.setWordCategory(wordCategoryResponse);
+			aimlQualityScoreRequest.setWordCategory(wordCategoryResponse.getWordCategory());
 			aimlQualityScoreRequest.setRequirementStatements(requirementStatementList);
 			experianFileRequest.setRequirementList(requirementStatementList);
 
@@ -216,12 +215,12 @@ public class ExternalService {
 
 			List<RequirementStatement> requirementStatementList = new ArrayList<RequirementStatement>();
 			RequirementStatement requirementStatement = new RequirementStatement();
-			requirementStatement.setId(1);
+			requirementStatement.setID(1);
 			requirementStatement.setRequirementStatement(requirement);
 			requirementStatementList.add(requirementStatement);
 
 			aimlTaxationRequest.setRequirementStatements(requirementStatementList);
-			aimlTaxationRequest.setWordCategory(wordCategoryResponse);
+			aimlQualityScoreRequest.setWordCategory(wordCategoryResponse.getWordCategory());
 			aimlQualityScoreRequest.setRequirementStatements(requirementStatementList);
 			experianFileRequest.setRequirementList(requirementStatementList);
 
@@ -261,8 +260,6 @@ public class ExternalService {
 	 * @return
 	 */
 	public FileUploadResponseList addMatchedRequirement(List<Suggestions> suggestionList) {
-		// Get Word count.
-		List<RequirementSuggestions> requirementSuggestionsList = new ArrayList<>();
 		WordCategoryResponse wordCategoryResponse = getWordCategoryFromNeo4j();
 		if (wordCategoryResponse != null) {
 			AimlQualityScoreRequest aimlQualityScoreRequest = new AimlQualityScoreRequest();
@@ -273,13 +270,13 @@ public class ExternalService {
 			int count = 1;
 			for (Suggestions suggestions : suggestionList) {
 				RequirementStatement requirementStatement = new RequirementStatement();
-				requirementStatement.setId(count);
+				requirementStatement.setID(count);
 				requirementStatement.setRequirementStatement(suggestions.getSuggestion());
 				count++;
 				requirementStatementList.add(requirementStatement);
 			}
 			aimlTaxationRequest.setRequirementStatements(requirementStatementList);
-			aimlTaxationRequest.setWordCategory(wordCategoryResponse);
+			aimlQualityScoreRequest.setWordCategory(wordCategoryResponse.getWordCategory());
 			aimlQualityScoreRequest.setRequirementStatements(requirementStatementList);
 			experianFileRequest.setRequirementList(requirementStatementList);
 
@@ -318,12 +315,12 @@ public class ExternalService {
 
 			List<RequirementStatement> requirementStatementList = new ArrayList<RequirementStatement>();
 			RequirementStatement requirementStatement = new RequirementStatement();
-			requirementStatement.setId(1);
+			requirementStatement.setID(1);
 			requirementStatement.setRequirementStatement(requirement);
 			requirementStatementList.add(requirementStatement);
 
 			aimlTaxationRequest.setRequirementStatements(requirementStatementList);
-			aimlTaxationRequest.setWordCategory(wordCategoryResponse);
+			aimlQualityScoreRequest.setWordCategory(wordCategoryResponse.getWordCategory());
 			aimlQualityScoreRequest.setRequirementStatements(requirementStatementList);
 			experianFileRequest.setRequirementList(requirementStatementList);
 
@@ -397,7 +394,7 @@ public class ExternalService {
 			RequirementSuggestions  requirementSuggestions = new RequirementSuggestions();
 			if(suggestions != null) {
 				RequirementStatement requirementStatement = new RequirementStatement();
-				requirementStatement.setId(count);
+				requirementStatement.setID(count);
 				requirementStatement.setRequirementStatement(suggestions.getSuggestion());
 				requirementSuggestions.setRequirements(requirementStatement);
 				count++;

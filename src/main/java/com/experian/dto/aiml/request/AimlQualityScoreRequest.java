@@ -6,6 +6,8 @@ package com.experian.dto.aiml.request;
 import java.util.List;
 
 import com.experian.dto.neo4j.RequirementStatement;
+import com.experian.dto.neo4j.response.WordCategory;
+import com.experian.dto.neo4j.response.WordCategoryResponse;
 
 /**
  * @author manchanda.a
@@ -14,6 +16,7 @@ import com.experian.dto.neo4j.RequirementStatement;
 public class AimlQualityScoreRequest {
 	
 	private List<RequirementStatement> requirementStatements;
+	private List<WordCategory> wordCategory;
 
 	/**
 	 * @return the requirementStatements
@@ -27,6 +30,20 @@ public class AimlQualityScoreRequest {
 	 */
 	public void setRequirementStatements(List<RequirementStatement> requirementStatements) {
 		this.requirementStatements = requirementStatements;
+	}
+
+	/**
+	 * @return the wordCategory
+	 */
+	public List<WordCategory> getWordCategory() {
+		return wordCategory;
+	}
+
+	/**
+	 * @param wordCategory the wordCategory to set
+	 */
+	public void setWordCategory(List<WordCategory> wordCategory) {
+		this.wordCategory = wordCategory;
 	}
 	
 	

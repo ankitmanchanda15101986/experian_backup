@@ -12,21 +12,21 @@ import java.util.List;
  */
 public class ChatBotScoreResponse {
 	
-	private List<ChatBotScore> response;
+	private List<ChatBotScore> wordCount;
 
 	/**
-	 * @return the response
+	 * @return the wordCount
 	 */
-	public List<ChatBotScore> getResponse() {
-		return response;
+	public List<ChatBotScore> getWordCount() {
+		return wordCount;
 	}
 
 	/**
-	 * @param response the response to set
+	 * @param wordCount the wordCount to set
 	 */
-	public void setResponse(List<ChatBotScore> response) {
-		this.response = response;
+	public void setWordCount(List<ChatBotScore> wordCount) {
+		this.wordCount = wordCount;
 	}
-	
+
 	
 }

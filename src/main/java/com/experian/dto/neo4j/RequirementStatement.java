@@ -9,21 +9,23 @@ package com.experian.dto.neo4j;
  */
 public class RequirementStatement {
 
-	private int id;
+	private int ID;
 	private String requirementStatement;
 	
-	/**
-	 * @return the id
-	 */
-	public int getId() {
-		return id;
-	}
 	
+
 	/**
-	 * @param id the id to set
+	 * @return the iD
 	 */
-	public void setId(int id) {
-		this.id = id;
+	public int getID() {
+		return ID;
+	}
+
+	/**
+	 * @param iD the iD to set
+	 */
+	public void setID(int iD) {
+		ID = iD;
 	}
 
 	/**

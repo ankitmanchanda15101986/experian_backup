@@ -9,45 +9,44 @@ package com.experian.dto.chatbot.response;
  */
 public class ChatBotScore {
 
-	private String category;
-	private Integer count;
-	private String word;
+	private String Category;
+	private String Word;
+	private Integer Count;
+	
 	/**
 	 * @return the category
 	 */
 	public String getCategory() {
-		return category;
+		return Category;
 	}
 	/**
 	 * @param category the category to set
 	 */
 	public void setCategory(String category) {
-		this.category = category;
-	}
-	/**
-	 * @return the count
-	 */
-	public Integer getCount() {
-		return count;
-	}
-	/**
-	 * @param count the count to set
-	 */
-	public void setCount(Integer count) {
-		this.count = count;
+		Category = category;
 	}
 	/**
 	 * @return the word
 	 */
 	public String getWord() {
-		return word;
+		return Word;
 	}
 	/**
 	 * @param word the word to set
 	 */
 	public void setWord(String word) {
-		this.word = word;
+		Word = word;
 	}
-	
-	
+	/**
+	 * @return the count
+	 */
+	public Integer getCount() {
+		return Count;
+	}
+	/**
+	 * @param count the count to set
+	 */
+	public void setCount(Integer count) {
+		Count = count;
+	}	
 }
