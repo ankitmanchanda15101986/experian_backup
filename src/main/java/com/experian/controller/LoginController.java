@@ -29,9 +29,9 @@ public class LoginController {
 		LoginResponse response = new LoginResponse();
 		boolean isAuth = service.isUserAuthorized(request);
 		if(isAuth) {
-			response.setResponse("Success");
+			response.setResponse("Successfully logged in");
 		} else {
-			response.setResponse("Failure");
+			response.setResponse("Authentication failed");
 		}
 		return response;
 	}

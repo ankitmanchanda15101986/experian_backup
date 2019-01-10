@@ -19,7 +19,7 @@ public class FileUploadResponse {
 	private String taxonomy_Level_2;
 	private String taxonomy_Level_3;
 	private String taxonomy_Level_4;
-	private RequirementStatement requirementStatement;
+	private RequirementStatement requirementStatements;
 	private List<Suggestions> suggestions;
 	/**
 	 * @return the qualityScore
@@ -81,17 +81,18 @@ public class FileUploadResponse {
 	public void setTaxonomy_Level_4(String taxonomy_Level_4) {
 		this.taxonomy_Level_4 = taxonomy_Level_4;
 	}
+	
 	/**
-	 * @return the requirementStatement
+	 * @return the requirementStatements
 	 */
-	public RequirementStatement getRequirementStatement() {
-		return requirementStatement;
+	public RequirementStatement getRequirementStatements() {
+		return requirementStatements;
 	}
 	/**
-	 * @param requirementStatement the requirementStatement to set
+	 * @param requirementStatements the requirementStatements to set
 	 */
-	public void setRequirementStatement(RequirementStatement requirementStatement) {
-		this.requirementStatement = requirementStatement;
+	public void setRequirementStatements(RequirementStatement requirementStatements) {
+		this.requirementStatements = requirementStatements;
 	}
 	/**
 	 * @return the suggestions

@@ -154,7 +154,7 @@ public class ExperianAIMLMapper {
 			RequirementSuggestions suggestionResponse) {
 		FileUploadResponse response = new FileUploadResponse();
 		response.setQualityScore(aimlResponse.getQualityScore());
-		response.setRequirementStatement(aimlResponse.getRequirementStatement());
+		response.setRequirementStatements(aimlResponse.getRequirementStatement());
 		response.setTaxonomy_Level_1(aimlResponse.getTaxonomy_Level_1());
 		response.setTaxonomy_Level_2(aimlResponse.getTaxonomy_Level_2());
 		response.setTaxonomy_Level_3(aimlResponse.getTaxonomy_Level_3());
