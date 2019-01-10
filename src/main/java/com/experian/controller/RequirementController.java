@@ -20,6 +20,7 @@ import com.experian.dto.FileUploadResponse;
 import com.experian.dto.FileUploadResponseList;
 import com.experian.dto.aiml.response.AimlQualityScoreResponse;
 import com.experian.dto.chatbot.response.ChatBotScoreResponse;
+import com.experian.dto.chatbot.response.ChatbotFinalResponse;
 import com.experian.dto.neo4j.request.FinalNeo4JRequest;
 import com.experian.dto.neo4j.response.SuggestionResponse;
 import com.experian.dto.neo4j.response.taxation.Taxation;
@@ -117,7 +118,7 @@ public class RequirementController {
 	 * @param request
 	 */
 	@RequestMapping(value="/chatbot/score", method = RequestMethod.POST)
-	private ChatBotScoreResponse getChatbotQualityScore(@RequestBody ExperianSearchRequest request) {
+	private ChatbotFinalResponse getChatbotQualityScore(@RequestBody ExperianSearchRequest request) {
 		return service.calculateChatBotScore(request.getRequirement());
 	}
 	

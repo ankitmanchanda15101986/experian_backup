@@ -27,6 +27,7 @@ import com.experian.dto.aiml.response.AimlQualityScoreResponse;
 import com.experian.dto.aiml.response.AimlTaxationResponse;
 import com.experian.dto.chatbot.request.ChatBotScoreRequest;
 import com.experian.dto.chatbot.response.ChatBotScoreResponse;
+import com.experian.dto.chatbot.response.ChatbotFinalResponse;
 import com.experian.dto.neo4j.RequirementStatement;
 import com.experian.dto.neo4j.RequirementSuggestions;
 import com.experian.dto.neo4j.Suggestions;
@@ -37,6 +38,7 @@ import com.experian.dto.neo4j.response.WordCategory;
 import com.experian.dto.neo4j.response.WordCategoryResponse;
 import com.experian.dto.neo4j.response.taxation.Taxation;
 import com.experian.mapper.ExperianAIMLMapper;
+import com.experian.mapper.ExperianChatBotMapper;
 import com.experian.mapper.ExperianNeo4JMapper;
 
 import org.springframework.stereotype.Service;
@@ -60,6 +62,9 @@ public class ExternalService {
 
 	@Autowired
 	private ExperianAIMLMapper aimlMapper;
+	
+	@Autowired
+	private ExperianChatBotMapper chatbotMapper;
 
 	@Value("${service.aiml.taxation.uri}")
 	private String aimlGetTaxationUri;
@@ -367,16 +372,18 @@ public class ExternalService {
 	 * @param requirement
 	 * @return
 	 */
-	public ChatBotScoreResponse calculateChatBotScore(String requirement) {
+	public ChatbotFinalResponse calculateChatBotScore(String requirement) {
 		// Get Word count.
 		WordCategoryResponse wordCategoryResponse = getWordCategoryFromNeo4j();
 		if (wordCategoryResponse != null) {
 			ChatBotScoreRequest request = new ChatBotScoreRequest();
 			request.setRequirement(requirement);
 			request.setWordCategory(wordCategoryResponse.getWordCategory());
-			ResponseEntity<ChatBotScoreResponse> response = template.postForEntity(chatbotCalculateScoreUri, request,
+			ResponseEntity<ChatBotScoreResponse> chatBotScoreResponse = template.postForEntity(chatbotCalculateScoreUri, request,
 					ChatBotScoreResponse.class);
-			return response.getBody();
+			AimlQualityScoreResponse aimlQualityScoreResponse = refreshQualityScore(requirement);
+			ChatbotFinalResponse chatbotFinalResponse = chatbotMapper.createChatBotResponseToIncludeQualityResponse(aimlQualityScoreResponse, chatBotScoreResponse.getBody());
+			return chatbotFinalResponse;
 		}
 
 		return null;
