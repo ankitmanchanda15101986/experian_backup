@@ -53,135 +53,154 @@ import com.experian.properties.FileStorageProperties;
 @Service
 public class FileStorageService {
 	private static final Logger logger = LoggerFactory.getLogger(FileStorageService.class);
-	
+
 	private final Path fileStorageLocation;
-	
+
 	@Autowired
 	private ExternalService externalService;
-	
+
 	@Autowired
 	private ExperianAIMLMapper aimlMapper;
-	
+
 	@Autowired
 	private ServiceHelper helper;
-	
+
 	@Autowired
 	private ExperianNeo4JMapper neo4jMapper;
-	
-    public FileStorageService(FileStorageProperties fileStorageProperties) {
-        this.fileStorageLocation = Paths.get(fileStorageProperties.getUploadDir())
-                .toAbsolutePath().normalize();
-        try {
-            Files.createDirectories(this.fileStorageLocation);
-        } catch (Exception ex) {
-            throw new FileStorageException("Could not create the directory where the uploaded files will be stored.", ex);
-        }
-    }
-    /**
-     * This method will temporarly save file to local folder.
-     * @param file
-     * @return
-     */
-    public String storeFile(MultipartFile file) {
-        // Normalize file name
-        String fileName = StringUtils.cleanPath(file.getOriginalFilename());
-        logger.debug("File name is "+fileName);
-        try {
-            // Copy file to the target location (Replacing existing file with the same name)
-            Path targetLocation = this.fileStorageLocation.resolve(fileName);
-            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-            return fileName;
-        } catch (IOException ex) {
-        	logger.error("Caught error while storing file"+ex);
-            throw new FileStorageException("Could not store file " + fileName + ". Please try again!", ex);
-        }
-    }
-    
-    /**
-     * This method will read file from path and then save data into database.
-     * @param fileName
-     */
-    public FileUploadResponseList readFile(String fileName) {
-    	try {
-            Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
-            Resource resource = new UrlResource(filePath.toUri());
-            if(resource.exists()) {
-            	// it will read data from file and convert it to list of object.
-            	ExperianFileRequest experianFileRequest = readFileData(resource);
-            	
-            	// it will call neo4j service to get master data.
-            	WordCategoryResponse wordCategoryResponse = externalService.getWordCategoryFromNeo4j();
-            	logger.info("Word category response ", wordCategoryResponse.getWordCategory().toString());
-            	System.out.println("Word category response "+wordCategoryResponse.getWordCategory().size());
-            	// it will call AI/ML Service to get taxation .
-            	AimlTaxationRequest aimlTaxationRequest = aimlMapper.mapBatchRequestToAIMLTaxationRequest(experianFileRequest);
-            	AimlTaxationResponse aimlTaxationResponse = externalService.processFileToAimlToGetTaxation(aimlTaxationRequest);
-            	logger.info("Aiml taxation response ", aimlTaxationResponse.getTaxonomyClassification().size());
-            	System.out.println("Aiml taxation response "+aimlTaxationResponse.getTaxonomyClassification().size());
-            	
-            	// it will call AI/ML Service to get quality score. 
-            	AimlQualityScoreRequest aimlQualityScoreRequest = aimlMapper.mapBatchRequestToAimlQualityScoreRequest(wordCategoryResponse, experianFileRequest);
-            	AimlQualityScoreResponse aimlQualityScoreResponse = externalService.processFileToAimlToGetQualityScore(aimlQualityScoreRequest);
-            	System.out.println("Aiml quality score response "+aimlQualityScoreResponse.getQualityScore().size());
-            	
-            	// it will convert file request , quality score and taxation to get file final response.
-            	AimlFileFinalResponse aimlFileFinalResponse = aimlMapper.mapQualityAndTaxationToGetFinalResponse(experianFileRequest, aimlTaxationResponse, aimlQualityScoreResponse);
-            	logger.info("Aiml final response ", aimlFileFinalResponse.getResponse().size());
-            	// Map quality score response and taxation response to create single object.
-            	// it will call neo4j service to get suggestions.
-            	TaxationBasedSuggestionRequest taxationBasedSuggestionRequest = neo4jMapper.getTaxationBasedSuggestionFromAimlResponse(aimlFileFinalResponse);
 
-            	SuggestionResponse suggestionResponse = externalService.processFileToNeo4jToGetSuggestions(taxationBasedSuggestionRequest);
-            	logger.debug("Neo4j file suggestion ", suggestionResponse.getSuggestions().toString());
-            	
-            	// it will create final response
-            	Map<AimlFileResponse, RequirementSuggestions> map = helper.fetchMapBasedOnRequirementId(aimlFileFinalResponse, suggestionResponse);
-            	return helper.createFinalUploadResponseList(map);
-            	
-            } else {
-            	logger.error("Could not find resource while reading file "+fileName);
-                throw new MyFileNotFoundException("File not found " + fileName);
-            }
-        } catch (MalformedURLException ex) {
-        	logger.error("Caught error while reading file "+ex);
-            throw new MyFileNotFoundException("File not found " + fileName, ex);
-        }    	
-    }
-    
-    /**
-     * This method will read file data which is temporarily saved
-     * and returns list of experian file object.
-     * @param resource
-     * @return
-     */
-    public ExperianFileRequest readFileData(Resource resource) {
-    	ExperianFileRequest experianFile = new ExperianFileRequest();
-    	try {
-			FileInputStream excelFile  = new FileInputStream(resource.getFile());
+	public FileStorageService(FileStorageProperties fileStorageProperties) {
+		this.fileStorageLocation = Paths.get(fileStorageProperties.getUploadDir()).toAbsolutePath().normalize();
+		try {
+			Files.createDirectories(this.fileStorageLocation);
+		} catch (Exception ex) {
+			throw new FileStorageException("Could not create the directory where the uploaded files will be stored.",
+					ex);
+		}
+	}
+
+	/**
+	 * This method will temporarly save file to local folder.
+	 * 
+	 * @param file
+	 * @return
+	 */
+	public String storeFile(MultipartFile file) {
+		// Normalize file name
+		String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+		logger.info("File name is " + fileName);
+		System.out.println(" storing file " + fileName);
+		try {
+			// Copy file to the target location (Replacing existing file with
+			// the same name)
+			Path targetLocation = this.fileStorageLocation.resolve(fileName);
+			Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+			return fileName;
+		} catch (IOException ex) {
+			logger.error("Caught error while storing file" + ex);
+			throw new FileStorageException("Could not store file " + fileName + ". Please try again!", ex);
+		}
+	}
+
+	/**
+	 * This method will read file from path and then save data into database.
+	 * 
+	 * @param fileName
+	 */
+	public FileUploadResponseList readFile(String fileName) {
+		try {
+			System.out.println(" reading file " + fileName);
+			Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
+			Resource resource = new UrlResource(filePath.toUri());
+			if (resource.exists()) {
+				// it will read data from file and convert it to list of object.
+				ExperianFileRequest experianFileRequest = readFileData(resource);
+
+				// it will call neo4j service to get master data.
+				WordCategoryResponse wordCategoryResponse = externalService.getWordCategoryFromNeo4j();
+				logger.info("Word category response ", wordCategoryResponse.getWordCategory().toString());
+				System.out.println("Word category response " + wordCategoryResponse.getWordCategory().size());
+				// it will call AI/ML Service to get taxation .
+				AimlTaxationRequest aimlTaxationRequest = aimlMapper
+						.mapBatchRequestToAIMLTaxationRequest(experianFileRequest);
+				AimlTaxationResponse aimlTaxationResponse = externalService
+						.processFileToAimlToGetTaxation(aimlTaxationRequest);
+				logger.info("Aiml taxation response ", aimlTaxationResponse.getTaxonomyClassification().size());
+				System.out.println("Aiml taxation response " + aimlTaxationResponse.getTaxonomyClassification().size());
+
+				// it will call AI/ML Service to get quality score.
+				AimlQualityScoreRequest aimlQualityScoreRequest = aimlMapper
+						.mapBatchRequestToAimlQualityScoreRequest(wordCategoryResponse, experianFileRequest);
+				AimlQualityScoreResponse aimlQualityScoreResponse = externalService
+						.processFileToAimlToGetQualityScore(aimlQualityScoreRequest);
+				System.out.println("Aiml quality score response " + aimlQualityScoreResponse.getQualityScore().size());
+
+				// it will convert file request , quality score and taxation to
+				// get file final response.
+				AimlFileFinalResponse aimlFileFinalResponse = aimlMapper.mapQualityAndTaxationToGetFinalResponse(
+						experianFileRequest, aimlTaxationResponse, aimlQualityScoreResponse);
+				logger.info("Aiml final response ", aimlFileFinalResponse.getResponse().size());
+				// Map quality score response and taxation response to create
+				// single object.
+				// it will call neo4j service to get suggestions.
+				TaxationBasedSuggestionRequest taxationBasedSuggestionRequest = neo4jMapper
+						.getTaxationBasedSuggestionFromAimlResponse(aimlFileFinalResponse);
+
+				SuggestionResponse suggestionResponse = externalService
+						.processFileToNeo4jToGetSuggestions(taxationBasedSuggestionRequest);
+				logger.debug("Neo4j file suggestion ", suggestionResponse.getSuggestions().toString());
+
+				// it will create final response
+				Map<AimlFileResponse, RequirementSuggestions> map = helper
+						.fetchMapBasedOnRequirementId(aimlFileFinalResponse, suggestionResponse);
+				return helper.createFinalUploadResponseList(map);
+
+			} else {
+				logger.error("Could not find resource while reading file " + fileName);
+				throw new MyFileNotFoundException("File not found " + fileName);
+			}
+		} catch (MalformedURLException ex) {
+			logger.error("Caught error while reading file " + ex);
+			throw new MyFileNotFoundException("File not found " + fileName, ex);
+		}
+	}
+
+	/**
+	 * This method will read file data which is temporarily saved and returns
+	 * list of experian file object.
+	 * 
+	 * @param resource
+	 * @return
+	 */
+	public ExperianFileRequest readFileData(Resource resource) {
+		ExperianFileRequest experianFile = new ExperianFileRequest();
+		try {
+			FileInputStream excelFile = new FileInputStream(resource.getFile());
 			Workbook workbook = new XSSFWorkbook(excelFile);
-			
+
 			// Get Requirement List
-            List<RequirementStatement> requirementList = new ArrayList<RequirementStatement>();
-            Sheet datatypeSheet = workbook.getSheetAt(0);
-            Iterator<Row> iterator = datatypeSheet.iterator();
-            int count =1;
-            while (iterator.hasNext()) {
-                Row currentRow = iterator.next();
-                RequirementStatement requirement = new RequirementStatement();
-                requirement.setID(count);
-                requirement.setRequirementStatement(currentRow.getCell(0).getStringCellValue());
-                logger.info("requirement number "+requirement.getID()+" requirement : "+requirement.getRequirementStatement());
-                requirementList.add(requirement);
-                count++;
-            }
-            experianFile.setRequirementList(requirementList);
-            workbook.close();
+			List<RequirementStatement> requirementList = new ArrayList<RequirementStatement>();
+			Sheet datatypeSheet = workbook.getSheetAt(0);
+			Iterator<Row> iterator = datatypeSheet.iterator();
+			int count = 1;
+			while (iterator.hasNext()) {
+				Row currentRow = iterator.next();
+				if(count > 1) {
+					RequirementStatement requirement = new RequirementStatement();
+					requirement.setID(count);
+					requirement.setRequirementStatement(currentRow.getCell(0).getStringCellValue());
+					logger.info("requirement number " + requirement.getID() + " requirement : "
+							+ requirement.getRequirementStatement());
+					requirementList.add(requirement);
+				}
+				count++;
+			}
+			experianFile.setRequirementList(requirementList);
+			workbook.close();
 		} catch (IOException ex) {
 			logger.error("Caught error while reading file", ex);
 			throw new FileStorageException("Caught error while reading file", ex);
 		}
 		return experianFile;
-    }
-    
-    
+	}
+
 }
