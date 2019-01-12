@@ -37,7 +37,8 @@ import com.experian.dto.aiml.response.AimlQualityScoreResponse;
 import com.experian.dto.aiml.response.AimlTaxationResponse;
 import com.experian.dto.neo4j.RequirementStatement;
 import com.experian.dto.neo4j.RequirementSuggestions;
-import com.experian.dto.neo4j.request.TaxationBasedSuggestionRequest;
+import com.experian.dto.neo4j.request.latest.Neo4jSuggestionResponse;
+import com.experian.dto.neo4j.request.latest.SuggestionBasedOnMultipleRequirementRequest;
 import com.experian.dto.neo4j.response.SuggestionResponse;
 import com.experian.dto.neo4j.response.WordCategoryResponse;
 import com.experian.exception.FileStorageException;
@@ -88,7 +89,6 @@ public class FileStorageService {
 		// Normalize file name
 		String fileName = StringUtils.cleanPath(file.getOriginalFilename());
 		logger.info("File name is " + fileName);
-		System.out.println(" storing file " + fileName);
 		try {
 			// Copy file to the target location (Replacing existing file with
 			// the same name)
@@ -117,36 +117,31 @@ public class FileStorageService {
 
 				// it will call neo4j service to get master data.
 				WordCategoryResponse wordCategoryResponse = externalService.getWordCategoryFromNeo4j();
-				logger.info("Word category response ", wordCategoryResponse.getWordCategory().toString());
-				System.out.println("Word category response " + wordCategoryResponse.getWordCategory().size());
+				logger.debug("Word category response ", wordCategoryResponse.getWordCategory().toString());
 				// it will call AI/ML Service to get taxation .
 				AimlTaxationRequest aimlTaxationRequest = aimlMapper
 						.mapBatchRequestToAIMLTaxationRequest(experianFileRequest);
 				AimlTaxationResponse aimlTaxationResponse = externalService
 						.processFileToAimlToGetTaxation(aimlTaxationRequest);
-				logger.info("Aiml taxation response ", aimlTaxationResponse.getTaxonomyClassification().size());
-				System.out.println("Aiml taxation response " + aimlTaxationResponse.getTaxonomyClassification().size());
+				logger.debug("Aiml taxation response ", aimlTaxationResponse.getTaxonomyClassification().size());
 
 				// it will call AI/ML Service to get quality score.
 				AimlQualityScoreRequest aimlQualityScoreRequest = aimlMapper
 						.mapBatchRequestToAimlQualityScoreRequest(wordCategoryResponse, experianFileRequest);
 				AimlQualityScoreResponse aimlQualityScoreResponse = externalService
 						.processFileToAimlToGetQualityScore(aimlQualityScoreRequest);
-				System.out.println("Aiml quality score response " + aimlQualityScoreResponse.getQualityScore().size());
 
 				// it will convert file request , quality score and taxation to
 				// get file final response.
 				AimlFileFinalResponse aimlFileFinalResponse = aimlMapper.mapQualityAndTaxationToGetFinalResponse(
 						experianFileRequest, aimlTaxationResponse, aimlQualityScoreResponse);
-				logger.info("Aiml final response ", aimlFileFinalResponse.getResponse().size());
-				// Map quality score response and taxation response to create
-				// single object.
-				// it will call neo4j service to get suggestions.
-				TaxationBasedSuggestionRequest taxationBasedSuggestionRequest = neo4jMapper
-						.getTaxationBasedSuggestionFromAimlResponse(aimlFileFinalResponse);
-
-				SuggestionResponse suggestionResponse = externalService
-						.processFileToNeo4jToGetSuggestions(taxationBasedSuggestionRequest);
+				logger.debug("Aiml final response ", aimlFileFinalResponse.getResponse().size());
+				
+				// Calling Neo4j Service
+				SuggestionBasedOnMultipleRequirementRequest suggestionRequest = neo4jMapper.convertRequirementSuggestionToSuggestionRequest(aimlFileFinalResponse);
+				List<Neo4jSuggestionResponse> neo4jSuggestionResponse = externalService.processFileToNeo4jToGetSuggestion(suggestionRequest);
+		
+				SuggestionResponse suggestionResponse = neo4jMapper.convertSuggestionBasedResponse(neo4jSuggestionResponse);
 				logger.debug("Neo4j file suggestion ", suggestionResponse.getSuggestions().toString());
 
 				// it will create final response
@@ -188,7 +183,7 @@ public class FileStorageService {
 					RequirementStatement requirement = new RequirementStatement();
 					requirement.setID(count);
 					requirement.setRequirementStatement(currentRow.getCell(0).getStringCellValue());
-					logger.info("requirement number " + requirement.getID() + " requirement : "
+					logger.debug("requirement number " + requirement.getID() + " requirement : "
 							+ requirement.getRequirementStatement());
 					requirementList.add(requirement);
 				}

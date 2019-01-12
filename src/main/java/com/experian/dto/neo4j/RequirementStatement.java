@@ -9,7 +9,7 @@ package com.experian.dto.neo4j;
  */
 public class RequirementStatement {
 
-	private int ID;
+	private Integer ID;
 	private String requirementStatement;
 	
 	
@@ -17,14 +17,14 @@ public class RequirementStatement {
 	/**
 	 * @return the iD
 	 */
-	public int getID() {
+	public Integer getID() {
 		return ID;
 	}
 
 	/**
 	 * @param iD the iD to set
 	 */
-	public void setID(int iD) {
+	public void setID(Integer iD) {
 		ID = iD;
 	}
 

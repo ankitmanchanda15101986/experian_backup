@@ -2,39 +2,106 @@ package com.experian.mapper;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.springframework.stereotype.Component;
 
 import com.experian.dto.aiml.response.AimlFileFinalResponse;
 import com.experian.dto.aiml.response.AimlFileResponse;
+import com.experian.dto.neo4j.RequirementStatement;
+import com.experian.dto.neo4j.RequirementSuggestions;
+import com.experian.dto.neo4j.Suggestions;
 import com.experian.dto.neo4j.TaxationBasedSuggestion;
-import com.experian.dto.neo4j.request.TaxationBasedSuggestionRequest;
+import com.experian.dto.neo4j.request.latest.Neo4jSuggestionData;
+import com.experian.dto.neo4j.request.latest.Neo4jSuggestionDataList;
+import com.experian.dto.neo4j.request.latest.Neo4jSuggestionResponse;
+import com.experian.dto.neo4j.request.latest.SuggestionBasedOnMultipleRequirement;
+import com.experian.dto.neo4j.request.latest.SuggestionBasedOnMultipleRequirementRequest;
+import com.experian.dto.neo4j.response.SuggestionResponse;
 
 @Component
 public class ExperianNeo4JMapper {
-	
+
 	
 	/**
-	 * This method will get list of taxation based suggestion from aiml file response.
-	 * @param aimlResponse
+	 * This method will convert requirement list to format accepted by Neo4j for processing result.
+	 * @param aimlFileFinalResponse.getResponse()
 	 * @return
 	 */
-	public TaxationBasedSuggestionRequest getTaxationBasedSuggestionFromAimlResponse(AimlFileFinalResponse aimlResponse) {
-		TaxationBasedSuggestionRequest taxationBasedSuggestionRequest = new TaxationBasedSuggestionRequest();
-		List<TaxationBasedSuggestion> taxationBasedSuggestionlist = new ArrayList<>();
-		System.out.println(" aimlResponse.getResponse().isEmpty() "+aimlResponse.getResponse().isEmpty());
-		if(!aimlResponse.getResponse().isEmpty()) {
-			for (AimlFileResponse response : aimlResponse.getResponse()) {
-				System.out.println("AimlFileResponse  "+response.toString());
-				TaxationBasedSuggestion taxationBasedSuggestion = new TaxationBasedSuggestion();
-				taxationBasedSuggestion.setId(response.getRequirementStatement().getID());
-				taxationBasedSuggestion.setRequirementStatement(response.getRequirementStatement().getRequirementStatement());
-				taxationBasedSuggestion.setTaxation(response.getTaxonomy_Level_1());
-				taxationBasedSuggestionlist.add(taxationBasedSuggestion);
+	public SuggestionBasedOnMultipleRequirementRequest convertRequirementSuggestionToSuggestionRequest(AimlFileFinalResponse aimlFileFinalResponse) {
+		SuggestionBasedOnMultipleRequirementRequest request = new SuggestionBasedOnMultipleRequirementRequest();
+		List<SuggestionBasedOnMultipleRequirement> suggestionRequestList = new ArrayList<>();
+		for (AimlFileResponse aimlFileResponse : aimlFileFinalResponse.getResponse()) {
+			SuggestionBasedOnMultipleRequirement suggestionBasedOnMultipleRequirement = new SuggestionBasedOnMultipleRequirement();
+			suggestionBasedOnMultipleRequirement.setLevel1(aimlFileResponse.getTaxonomy_Level_1());
+			suggestionBasedOnMultipleRequirement.setLevel2(aimlFileResponse.getTaxonomy_Level_2());
+			suggestionBasedOnMultipleRequirement.setId(aimlFileResponse.getRequirementStatement().getID().toString());
+			suggestionBasedOnMultipleRequirement.setStatement(aimlFileResponse.getRequirementStatement().getRequirementStatement());
+			suggestionRequestList.add(suggestionBasedOnMultipleRequirement);
+		}
+		request.setMultipleSearch(suggestionRequestList);
+		return request;
+	}
+	
+	/**
+	 * This method will create suggestion response from list of neo4j suggestion object.
+	 * @param neo4jSuggestionResponseList
+	 * @return
+	 */
+	public SuggestionResponse convertSuggestionBasedResponse(List<Neo4jSuggestionResponse> neo4jSuggestionResponseList) {
+		SuggestionResponse suggestionResponse = new SuggestionResponse();
+		List<RequirementSuggestions> requirementSuggestionsList = new ArrayList<>();
+		for (Neo4jSuggestionResponse neo4jSuggestionResponse : neo4jSuggestionResponseList) {
+			requirementSuggestionsList.add(createRequirementSuggestions(Integer.parseInt(neo4jSuggestionResponse.getId()), neo4jSuggestionResponse));
+		}
+		suggestionResponse.setSuggestions(requirementSuggestionsList);
+		return suggestionResponse;
+	}
+	
+	/**
+	 * This method will create requirement suggestions for each id.
+	 * @param id
+	 * @param neo4jSuggestionResponse
+	 * @return
+	 */
+	private RequirementSuggestions createRequirementSuggestions(Integer id, Neo4jSuggestionResponse neo4jSuggestionResponse) {
+		RequirementSuggestions requirementSuggestions = new RequirementSuggestions();
+		RequirementStatement requirementStatement = new RequirementStatement();
+		List<Suggestions> suggestionList = new ArrayList<>();
+		requirementStatement.setID(id);
+		for (Neo4jSuggestionDataList neo4jSuggestionDataList : neo4jSuggestionResponse.getResult()) {
+			if(neo4jSuggestionDataList != null) {
+				if(!org.springframework.util.StringUtils.isEmpty(neo4jSuggestionDataList.getStatement())) {
+					requirementStatement.setRequirementStatement(neo4jSuggestionDataList.getStatement());
+				}
+				for (Neo4jSuggestionData neo4jSuggestionData : neo4jSuggestionDataList.getSuggestion()) {
+					Suggestions suggestions = createSuggestions(neo4jSuggestionData);
+					suggestionList.add(suggestions);
+				}
+				
 			}
 		}
-		taxationBasedSuggestionRequest.setRequest(taxationBasedSuggestionlist);
-		return taxationBasedSuggestionRequest;
+		requirementSuggestions.setRequirements(requirementStatement);
+		requirementSuggestions.setSuggestionResponse(suggestionList);
+		return requirementSuggestions;
 	}
-
+	
+	/**
+	 * This method will create suggestions object based on neo4j suggestion data.
+	 * @param neo4jSuggestionData
+	 * @return
+	 */
+	private Suggestions createSuggestions(Neo4jSuggestionData neo4jSuggestionData) {
+		Suggestions suggestions = new Suggestions();
+		if(neo4jSuggestionData != null) {
+			suggestions.setId(neo4jSuggestionData.getId());
+			suggestions.setLevel1(neo4jSuggestionData.getLevel1());
+			suggestions.setLevel2(neo4jSuggestionData.getLevel2());
+			suggestions.setLevel3(neo4jSuggestionData.getLevel3());
+			suggestions.setMatchPercentage(neo4jSuggestionData.getSearchScore());
+			suggestions.setQualityScore(neo4jSuggestionData.getQualityScore());
+			suggestions.setRequirementElaboration(neo4jSuggestionData.getRequirementElaboration());
+			suggestions.setSuggestion(neo4jSuggestionData.getRequirementStatement());
+		}
+		return suggestions;
+		
+	}
 }

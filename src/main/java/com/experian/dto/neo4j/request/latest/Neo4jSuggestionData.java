@@ -1,34 +1,33 @@
 /**
  * 
  */
-package com.experian.dto.neo4j;
-
+package com.experian.dto.neo4j.request.latest;
 
 /**
  * @author manchanda.a
  *
  */
-public class Suggestions {
+public class Neo4jSuggestionData {
 
-	private double matchPercentage;
+	private double searchScore;
 	private double qualityScore;
 	private String requirementElaboration;
 	private Integer id;
-	private String suggestion;
+	private String requirementStatement;
 	private String level1;
 	private String level3;
 	private String level2;
 	/**
-	 * @return the matchPercentage
+	 * @return the searchScore
 	 */
-	public double getMatchPercentage() {
-		return matchPercentage;
+	public double getSearchScore() {
+		return searchScore;
 	}
 	/**
-	 * @param matchPercentage the matchPercentage to set
+	 * @param searchScore the searchScore to set
 	 */
-	public void setMatchPercentage(double matchPercentage) {
-		this.matchPercentage = matchPercentage;
+	public void setSearchScore(double searchScore) {
+		this.searchScore = searchScore;
 	}
 	/**
 	 * @return the qualityScore
@@ -67,16 +66,16 @@ public class Suggestions {
 		this.id = id;
 	}
 	/**
-	 * @return the suggestion
+	 * @return the requirementStatement
 	 */
-	public String getSuggestion() {
-		return suggestion;
+	public String getRequirementStatement() {
+		return requirementStatement;
 	}
 	/**
-	 * @param suggestion the suggestion to set
+	 * @param requirementStatement the requirementStatement to set
 	 */
-	public void setSuggestion(String suggestion) {
-		this.suggestion = suggestion;
+	public void setRequirementStatement(String requirementStatement) {
+		this.requirementStatement = requirementStatement;
 	}
 	/**
 	 * @return the level1
@@ -115,7 +114,5 @@ public class Suggestions {
 		this.level2 = level2;
 	}
 	
-	
-		
 	
 }

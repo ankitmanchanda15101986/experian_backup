@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
@@ -32,7 +33,9 @@ import com.experian.dto.neo4j.RequirementStatement;
 import com.experian.dto.neo4j.RequirementSuggestions;
 import com.experian.dto.neo4j.Suggestions;
 import com.experian.dto.neo4j.request.FinalNeo4JRequest;
-import com.experian.dto.neo4j.request.TaxationBasedSuggestionRequest;
+import com.experian.dto.neo4j.request.latest.Neo4jSuggestionDataList;
+import com.experian.dto.neo4j.request.latest.Neo4jSuggestionResponse;
+import com.experian.dto.neo4j.request.latest.SuggestionBasedOnMultipleRequirementRequest;
 import com.experian.dto.neo4j.response.SuggestionResponse;
 import com.experian.dto.neo4j.response.WordCategory;
 import com.experian.dto.neo4j.response.WordCategoryResponse;
@@ -72,23 +75,20 @@ public class ExternalService {
 	@Value("${service.aiml.quality.score.uri}")
 	private String aimlGetQualityScoreUri;
 
-	@Value("${service.neo4j.suggestion.uri}")
-	private String neo4jSuggestionUri;
-
 	@Value("${service.save.uri}")
 	private String saveUri;
 
 	@Value("${service.word.category.uri}")
 	private String wordCategoryUri;
 
-	@Value("${service.calculate.score.uri}")
-	private String calculateScoreUri;
-
-	@Value("${service.taxation.uri}")
-	private String taxationUri;
+	@Value("${service.taxationMap.uri}")
+	private String taxationMapUri;
 
 	@Value("${service.chatbot.calculate.score.uri}")
 	private String chatbotCalculateScoreUri;
+	
+	@Value("${service.neo4j.suggestion.latest.uri}")
+	private String neo4jSuggestionLatestUri;
 
 	/**
 	 * This method will call AI/ML service and pass requirement statement , in
@@ -114,20 +114,11 @@ public class ExternalService {
 				AimlQualityScoreResponse.class);
 		return response.getBody();
 
-	}
-
-	/**
-	 * This method will call neo 4j service and pass requirement statement in
-	 * return it will get suggestions and match % from neo4j which internally
-	 * uses elastic search. suggestion
-	 * 
-	 * @param taxationBasedSuggestionRequest
-	 * @return
-	 */
-	public SuggestionResponse processFileToNeo4jToGetSuggestions(
-			TaxationBasedSuggestionRequest taxationBasedSuggestionRequest) {
-		ResponseEntity<SuggestionResponse> response = template.postForEntity(neo4jSuggestionUri,
-				taxationBasedSuggestionRequest, SuggestionResponse.class);
+	}	
+	
+	public List<Neo4jSuggestionResponse> processFileToNeo4jToGetSuggestion(SuggestionBasedOnMultipleRequirementRequest request) {
+		ResponseEntity<List<Neo4jSuggestionResponse>> response = template.exchange(neo4jSuggestionLatestUri,  HttpMethod.POST, new HttpEntity<SuggestionBasedOnMultipleRequirementRequest>(request), new ParameterizedTypeReference<List<Neo4jSuggestionResponse>>() {
+				});
 		return response.getBody();
 	}
 
@@ -167,10 +158,12 @@ public class ExternalService {
 			AimlFileFinalResponse aimlFileFinalResponse = aimlMapper.mapQualityAndTaxationToGetFinalResponse(
 					experianFileRequest, aimlTaxationResponse, aimlQualityScoreRespnse);
 
-			// Call to get suggestion.
-			TaxationBasedSuggestionRequest taxationBasedSuggestionRequest = neo4jMapper
-					.getTaxationBasedSuggestionFromAimlResponse(aimlFileFinalResponse);
-			SuggestionResponse suggestionResponse = processFileToNeo4jToGetSuggestions(taxationBasedSuggestionRequest);
+			// Calling Neo4j Service to get suggestion.
+			SuggestionBasedOnMultipleRequirementRequest suggestionRequest = neo4jMapper.convertRequirementSuggestionToSuggestionRequest(aimlFileFinalResponse);
+			List<Neo4jSuggestionResponse> neo4jSuggestionResponse = processFileToNeo4jToGetSuggestion(suggestionRequest);
+	
+			SuggestionResponse suggestionResponse = neo4jMapper.convertSuggestionBasedResponse(neo4jSuggestionResponse);
+			logger.debug("Neo4j file suggestion ", suggestionResponse.getSuggestions().toString());
 			return suggestionResponse;
 		}
 		return null;
@@ -241,10 +234,12 @@ public class ExternalService {
 
 			if (aimlFileFinalResponse != null) {
 				// Call to get suggestion.
-				TaxationBasedSuggestionRequest taxationBasedSuggestionRequest = neo4jMapper
-						.getTaxationBasedSuggestionFromAimlResponse(aimlFileFinalResponse);
-				SuggestionResponse suggestionResponse = processFileToNeo4jToGetSuggestions(
-						taxationBasedSuggestionRequest);
+				// Calling Neo4j Service to get suggestion.
+				SuggestionBasedOnMultipleRequirementRequest suggestionRequest = neo4jMapper.convertRequirementSuggestionToSuggestionRequest(aimlFileFinalResponse);
+				List<Neo4jSuggestionResponse> neo4jSuggestionResponse = processFileToNeo4jToGetSuggestion(suggestionRequest);
+		
+				SuggestionResponse suggestionResponse = neo4jMapper.convertSuggestionBasedResponse(neo4jSuggestionResponse);
+				logger.debug("Neo4j file suggestion ", suggestionResponse.getSuggestions().toString());
 				if (suggestionResponse != null) {
 					Map<AimlFileResponse, RequirementSuggestions> map = helper
 							.fetchMapBasedOnRequirementId(aimlFileFinalResponse, suggestionResponse);
@@ -360,7 +355,7 @@ public class ExternalService {
 	 * @return
 	 */
 	public List<Taxation> getTaxation() {
-		ResponseEntity<List<Taxation>> response = template.exchange(taxationUri, HttpMethod.GET, null,
+		ResponseEntity<List<Taxation>> response = template.exchange(taxationMapUri, HttpMethod.GET, null,
 				new ParameterizedTypeReference<List<Taxation>>() {
 				});
 		return response.getBody();
