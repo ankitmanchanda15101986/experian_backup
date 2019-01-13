@@ -34,10 +34,8 @@ public class FileController {
 	
 	@RequestMapping(value="/uploadFile", method=RequestMethod.POST)
 	public FileUploadResponseList uploadFile(@RequestParam("file") MultipartFile file) {
-		System.out.println("experianFileRequest : "); 
 		validate.validateFile(file);
-		String fileName = fileStorageService.storeFile(file);
-		FileUploadResponseList fileUploadResponseList = fileStorageService.readFile(fileName);
+		FileUploadResponseList fileUploadResponseList = fileStorageService.readFile(file);
 		return fileUploadResponseList;
 	}
 

@@ -80,98 +80,61 @@ public class FileStorageService {
 	}
 
 	/**
-	 * This method will temporarly save file to local folder.
-	 * 
-	 * @param file
-	 * @return
-	 */
-	public String storeFile(MultipartFile file) {
-		// Normalize file name
-		String fileName = StringUtils.cleanPath(file.getOriginalFilename());
-		logger.info("File name is " + fileName);
-		try {
-			// Copy file to the target location (Replacing existing file with
-			// the same name)
-			Path targetLocation = this.fileStorageLocation.resolve(fileName);
-			Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-			return fileName;
-		} catch (IOException ex) {
-			logger.error("Caught error while storing file" + ex);
-			throw new FileStorageException("Could not store file " + fileName + ". Please try again!", ex);
-		}
-	}
-
-	/**
 	 * This method will read file from path and then save data into database.
 	 * 
 	 * @param fileName
 	 */
-	public FileUploadResponseList readFile(String fileName) {
-		try {
-			System.out.println(" reading file " + fileName);
-			Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
-			Resource resource = new UrlResource(filePath.toUri());
-			if (resource.exists()) {
-				// it will read data from file and convert it to list of object.
-				ExperianFileRequest experianFileRequest = readFileData(resource);
+	public FileUploadResponseList readFile(MultipartFile file) {
+		System.out.println(" reading file " + file.getOriginalFilename());
+		// it will read data from file and convert it to list of object.
+		ExperianFileRequest experianFileRequest = readFileData(file);
 
-				// it will call neo4j service to get master data.
-				WordCategoryResponse wordCategoryResponse = externalService.getWordCategoryFromNeo4j();
-				logger.debug("Word category response ", wordCategoryResponse.getWordCategory().toString());
-				// it will call AI/ML Service to get taxation .
-				AimlTaxationRequest aimlTaxationRequest = aimlMapper
-						.mapBatchRequestToAIMLTaxationRequest(experianFileRequest);
-				AimlTaxationResponse aimlTaxationResponse = externalService
-						.processFileToAimlToGetTaxation(aimlTaxationRequest);
-				logger.debug("Aiml taxation response ", aimlTaxationResponse.getTaxonomyClassification().size());
+		// it will call neo4j service to get master data.
+		WordCategoryResponse wordCategoryResponse = externalService.getWordCategoryFromNeo4j();
+		logger.debug("Word category response ", wordCategoryResponse.getWordCategory().toString());
+		// it will call AI/ML Service to get taxation .
+		AimlTaxationRequest aimlTaxationRequest = aimlMapper.mapBatchRequestToAIMLTaxationRequest(experianFileRequest);
+		AimlTaxationResponse aimlTaxationResponse = externalService.processFileToAimlToGetTaxation(aimlTaxationRequest);
+		logger.debug("Aiml taxation response ", aimlTaxationResponse.getTaxonomyClassification().size());
 
-				// it will call AI/ML Service to get quality score.
-				AimlQualityScoreRequest aimlQualityScoreRequest = aimlMapper
-						.mapBatchRequestToAimlQualityScoreRequest(wordCategoryResponse, experianFileRequest);
-				AimlQualityScoreResponse aimlQualityScoreResponse = externalService
-						.processFileToAimlToGetQualityScore(aimlQualityScoreRequest);
+		// it will call AI/ML Service to get quality score.
+		AimlQualityScoreRequest aimlQualityScoreRequest = aimlMapper
+				.mapBatchRequestToAimlQualityScoreRequest(wordCategoryResponse, experianFileRequest);
+		AimlQualityScoreResponse aimlQualityScoreResponse = externalService
+				.processFileToAimlToGetQualityScore(aimlQualityScoreRequest);
 
-				// it will convert file request , quality score and taxation to
-				// get file final response.
-				AimlFileFinalResponse aimlFileFinalResponse = aimlMapper.mapQualityAndTaxationToGetFinalResponse(
-						experianFileRequest, aimlTaxationResponse, aimlQualityScoreResponse);
-				logger.debug("Aiml final response ", aimlFileFinalResponse.getResponse().size());
-				
-				// Calling Neo4j Service
-				SuggestionBasedOnMultipleRequirementRequest suggestionRequest = neo4jMapper.convertRequirementSuggestionToSuggestionRequest(aimlFileFinalResponse);
-				List<Neo4jSuggestionResponse> neo4jSuggestionResponse = externalService.processFileToNeo4jToGetSuggestion(suggestionRequest);
-		
-				SuggestionResponse suggestionResponse = neo4jMapper.convertSuggestionBasedResponse(neo4jSuggestionResponse);
-				logger.debug("Neo4j file suggestion ", suggestionResponse.getSuggestions().toString());
+		// it will convert file request , quality score and taxation to
+		// get file final response.
+		AimlFileFinalResponse aimlFileFinalResponse = aimlMapper.mapQualityAndTaxationToGetFinalResponse(
+				experianFileRequest, aimlTaxationResponse, aimlQualityScoreResponse);
+		logger.debug("Aiml final response ", aimlFileFinalResponse.getResponse().size());
 
-				// it will create final response
-				Map<AimlFileResponse, RequirementSuggestions> map = helper
-						.fetchMapBasedOnRequirementId(aimlFileFinalResponse, suggestionResponse);
-				return helper.createFinalUploadResponseList(map);
+		// Calling Neo4j Service
+		SuggestionBasedOnMultipleRequirementRequest suggestionRequest = neo4jMapper
+				.convertRequirementSuggestionToSuggestionRequest(aimlFileFinalResponse);
+		List<Neo4jSuggestionResponse> neo4jSuggestionResponse = externalService
+				.processFileToNeo4jToGetSuggestion(suggestionRequest);
 
-			} else {
-				logger.error("Could not find resource while reading file " + fileName);
-				throw new MyFileNotFoundException("File not found " + fileName);
-			}
-		} catch (MalformedURLException ex) {
-			logger.error("Caught error while reading file " + ex);
-			throw new MyFileNotFoundException("File not found " + fileName, ex);
-		}
+		SuggestionResponse suggestionResponse = neo4jMapper.convertSuggestionBasedResponse(neo4jSuggestionResponse);
+		logger.debug("Neo4j file suggestion ", suggestionResponse.getSuggestions().toString());
+
+		// it will create final response
+		Map<AimlFileResponse, RequirementSuggestions> map = helper.fetchMapBasedOnRequirementId(aimlFileFinalResponse,
+				suggestionResponse);
+		return helper.createFinalUploadResponseList(map);
 	}
 
 	/**
-	 * This method will read file data which is temporarily saved and returns
+	 * This method will read file data and returns
 	 * list of experian file object.
 	 * 
 	 * @param resource
 	 * @return
 	 */
-	public ExperianFileRequest readFileData(Resource resource) {
+	public ExperianFileRequest readFileData(MultipartFile file) {
 		ExperianFileRequest experianFile = new ExperianFileRequest();
 		try {
-			FileInputStream excelFile = new FileInputStream(resource.getFile());
-			Workbook workbook = new XSSFWorkbook(excelFile);
-
+			Workbook workbook = new XSSFWorkbook(file.getInputStream());
 			// Get Requirement List
 			List<RequirementStatement> requirementList = new ArrayList<RequirementStatement>();
 			Sheet datatypeSheet = workbook.getSheetAt(0);
@@ -179,7 +142,7 @@ public class FileStorageService {
 			int count = 1;
 			while (iterator.hasNext()) {
 				Row currentRow = iterator.next();
-				if(count > 1) {
+				if (count > 1) {
 					RequirementStatement requirement = new RequirementStatement();
 					requirement.setID(count);
 					requirement.setRequirementStatement(currentRow.getCell(0).getStringCellValue());

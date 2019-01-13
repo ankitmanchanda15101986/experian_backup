@@ -355,6 +355,7 @@ public class ExternalService {
 	 * @return
 	 */
 	public List<Taxation> getTaxation() {
+		System.out.println("taxationMapUri : "+taxationMapUri);
 		ResponseEntity<List<Taxation>> response = template.exchange(taxationMapUri, HttpMethod.GET, null,
 				new ParameterizedTypeReference<List<Taxation>>() {
 				});
