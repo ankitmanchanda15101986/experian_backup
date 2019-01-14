@@ -76,7 +76,7 @@ public class RequirementController {
 	 * @param request
 	 * @return
 	 */
-	@RequestMapping(value = "/add/match", method = RequestMethod.POST)
+	@RequestMapping(value = "/add/matching", method = RequestMethod.POST)
 	private FileUploadResponseList addNewResourceMatched(@RequestBody ExperianMatchedRequirementsRequest request) {
 		return service.addMatchedRequirement(request.getMatchedRequirements());
 	}
@@ -87,7 +87,7 @@ public class RequirementController {
 	 * @param request
 	 * @return
 	 */
-	@RequestMapping(value = "/add/no/match", method = RequestMethod.POST)
+	@RequestMapping(value = "/add/notMatching", method = RequestMethod.POST)
 	private FileUploadResponse addNoMatchFoundForResource(@RequestBody ExperianSearchRequest request) {
 		return service.addNoMatchedRequirement(request.getRequirement());
 	}
