@@ -11,7 +11,7 @@ public class ChatBotScore {
 
 	private String category;
 	private String word;
-	private Integer cnt;
+	private int cnt;
 	/**
 	 * @return the category
 	 */
@@ -39,13 +39,13 @@ public class ChatBotScore {
 	/**
 	 * @return the cnt
 	 */
-	public Integer getCnt() {
+	public int getCnt() {
 		return cnt;
 	}
 	/**
 	 * @param cnt the cnt to set
 	 */
-	public void setCnt(Integer cnt) {
+	public void setCnt(int cnt) {
 		this.cnt = cnt;
 	}
 	

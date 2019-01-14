@@ -25,6 +25,8 @@ public class ExperianChatBotMapper {
 	public ChatbotFinalResponse createChatBotResponseToIncludeQualityResponse(AimlQualityScoreResponse aimlQualityScoreResponse,
 			ChatBotScoreResponse chatBotScoreResponse) {
 		ChatbotFinalResponse response = new ChatbotFinalResponse();
+		System.out.println("aimlQualityScoreResponse : "+aimlQualityScoreResponse.getQualityScore().size());
+		System.out.println("chatBotScoreResponse : "+chatBotScoreResponse.getWordCount().size());
 		if(aimlQualityScoreResponse != null && chatBotScoreResponse != null) {
 			response.setQualityScore(aimlQualityScoreResponse.getQualityScore().get(0).getQualityScore());
 			response.setWordCount(chatBotScoreResponse.getWordCount());

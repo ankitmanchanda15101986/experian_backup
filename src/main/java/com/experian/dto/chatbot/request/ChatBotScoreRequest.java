@@ -42,8 +42,13 @@ public class ChatBotScoreRequest {
 	public void setWordCategory(List<WordCategory> wordCategory) {
 		this.wordCategory = wordCategory;
 	}
-	
-	
-	
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "ChatBotScoreRequest [requirement=" + requirement + ", wordCategory=" + wordCategory + "]";
+	}	
 	
 }

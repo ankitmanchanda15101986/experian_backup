@@ -43,6 +43,8 @@ import com.experian.dto.neo4j.response.taxation.Taxation;
 import com.experian.mapper.ExperianAIMLMapper;
 import com.experian.mapper.ExperianChatBotMapper;
 import com.experian.mapper.ExperianNeo4JMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import org.springframework.stereotype.Service;
 
@@ -383,12 +385,15 @@ public class ExternalService {
 	public ChatbotFinalResponse calculateChatBotScore(String requirement) {
 		// Get Word count.
 		WordCategoryResponse wordCategoryResponse = getWordCategoryFromNeo4j();
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		if (wordCategoryResponse != null) {
 			ChatBotScoreRequest request = new ChatBotScoreRequest();
 			request.setRequirement(requirement);
 			request.setWordCategory(wordCategoryResponse.getWordCategory());
+			logger.debug("ChatBotScoreRequest : "+gson.toJson(request));
 			ResponseEntity<ChatBotScoreResponse> chatBotScoreResponse = template.postForEntity(chatbotCalculateScoreUri, request,
 					ChatBotScoreResponse.class);
+			logger.debug("ChatBotScoreResponse : "+gson.toJson(chatBotScoreResponse.getBody()));
 			AimlQualityScoreResponse aimlQualityScoreResponse = refreshQualityScore(requirement);
 			ChatbotFinalResponse chatbotFinalResponse = chatbotMapper.createChatBotResponseToIncludeQualityResponse(aimlQualityScoreResponse, chatBotScoreResponse.getBody());
 			return chatbotFinalResponse;
