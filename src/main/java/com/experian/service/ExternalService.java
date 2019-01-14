@@ -33,7 +33,7 @@ import com.experian.dto.neo4j.RequirementStatement;
 import com.experian.dto.neo4j.RequirementSuggestions;
 import com.experian.dto.neo4j.Suggestions;
 import com.experian.dto.neo4j.request.FinalNeo4JRequest;
-import com.experian.dto.neo4j.request.latest.Neo4jSuggestionDataList;
+import com.experian.dto.neo4j.request.Neo4jDocumentRequest;
 import com.experian.dto.neo4j.request.latest.Neo4jSuggestionResponse;
 import com.experian.dto.neo4j.request.latest.SuggestionBasedOnMultipleRequirementRequest;
 import com.experian.dto.neo4j.response.SuggestionResponse;
@@ -89,7 +89,9 @@ public class ExternalService {
 	
 	@Value("${service.neo4j.suggestion.latest.uri}")
 	private String neo4jSuggestionLatestUri;
-
+	
+	@Value("$(service.neo4j.document.save.uri)")
+	private String neo4jDocumentSaveInfoUri;
 	/**
 	 * This method will call AI/ML service and pass requirement statement , in
 	 * return it will get taxation level 1,2,3,4.
@@ -178,6 +180,16 @@ public class ExternalService {
 	 */
 	public boolean processFinalResponse(FinalNeo4JRequest request) {
 		ResponseEntity<Boolean> response = template.postForEntity(saveUri, request, Boolean.class);
+		return response.getBody();
+	}
+	
+	/**
+	 * This method will save document information in neo4j.
+	 * @param request
+	 * @return
+	 */
+	public Neo4jDocumentRequest processDocumentInformation(Neo4jDocumentRequest request) {
+		ResponseEntity<Neo4jDocumentRequest> response = template.postForEntity(neo4jDocumentSaveInfoUri, request, Neo4jDocumentRequest.class);
 		return response.getBody();
 	}
 

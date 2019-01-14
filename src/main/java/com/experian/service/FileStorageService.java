@@ -3,13 +3,10 @@
  */
 package com.experian.service;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -21,10 +18,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.experian.dto.ExperianFileRequest;
@@ -42,7 +36,6 @@ import com.experian.dto.neo4j.request.latest.SuggestionBasedOnMultipleRequiremen
 import com.experian.dto.neo4j.response.SuggestionResponse;
 import com.experian.dto.neo4j.response.WordCategoryResponse;
 import com.experian.exception.FileStorageException;
-import com.experian.exception.MyFileNotFoundException;
 import com.experian.mapper.ExperianAIMLMapper;
 import com.experian.mapper.ExperianNeo4JMapper;
 import com.experian.properties.FileStorageProperties;
@@ -85,7 +78,6 @@ public class FileStorageService {
 	 * @param fileName
 	 */
 	public FileUploadResponseList readFile(MultipartFile file) {
-		System.out.println(" reading file " + file.getOriginalFilename());
 		// it will read data from file and convert it to list of object.
 		ExperianFileRequest experianFileRequest = readFileData(file);
 

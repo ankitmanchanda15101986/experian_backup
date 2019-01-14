@@ -13,13 +13,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.experian.dto.ExperianFileRefreshRequest;
 import com.experian.dto.ExperianMatchedRequirementsRequest;
 import com.experian.dto.ExperianSearchRequest;
 import com.experian.dto.FileUploadResponse;
 import com.experian.dto.FileUploadResponseList;
 import com.experian.dto.aiml.response.AimlQualityScoreResponse;
-import com.experian.dto.chatbot.response.ChatBotScoreResponse;
 import com.experian.dto.chatbot.response.ChatbotFinalResponse;
 import com.experian.dto.neo4j.request.FinalNeo4JRequest;
 import com.experian.dto.neo4j.response.SuggestionResponse;

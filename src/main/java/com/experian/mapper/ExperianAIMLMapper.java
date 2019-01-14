@@ -81,8 +81,6 @@ public class ExperianAIMLMapper {
 				aimlQualityScoreMap.put(aimlQualityScore.getId(), aimlQualityScore);
 			}
 		}
-		System.out.println("aimlTaxationMap : "+aimlTaxationMap.size());
-		System.out.println("aimlQualityScoreMap : "+aimlQualityScoreMap.size());
 		for (RequirementStatement requirement : experianFileRequest.getRequirementList()) {
 			RequirementStatement requirementStatement = null;
 			if(requirementList.containsKey(requirement.getID())) {

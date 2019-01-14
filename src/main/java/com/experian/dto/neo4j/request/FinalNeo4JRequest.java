@@ -2,46 +2,25 @@ package com.experian.dto.neo4j.request;
 
 import java.util.List;
 
-import com.experian.dto.neo4j.request.MetaDataRequest;
-
 public class FinalNeo4JRequest {
 
-	private String documentPurpose;
-	private String requirementElaboration;
-	private MetaDataRequest metaData;
+	private Neo4jDocumentRequest documentRequest;
 	private List<Neo4JFileRequest> fileRequest;
 	
-	public String getDocumentPurpose() {
-		return documentPurpose;
-	}
-	
-	public void setDocumentPurpose(String documentPurpose) {
-		this.documentPurpose = documentPurpose;
-	}
-	
-	public String getRequirementElaboration() {
-		return requirementElaboration;
-	}
-	
-	public void setRequirementElaboration(String requirementElaboration) {
-		this.requirementElaboration = requirementElaboration;
-	}
-	
 	
 	/**
-	 * @return the metaData
+	 * @return the documentRequest
 	 */
-	public MetaDataRequest getMetaData() {
-		return metaData;
+	public Neo4jDocumentRequest getDocumentRequest() {
+		return documentRequest;
 	}
 
 	/**
-	 * @param metaData the metaData to set
+	 * @param documentRequest the documentRequest to set
 	 */
-	public void setMetaData(MetaDataRequest metaData) {
-		this.metaData = metaData;
+	public void setDocumentRequest(Neo4jDocumentRequest documentRequest) {
+		this.documentRequest = documentRequest;
 	}
-
 
 	/**
 	 * @return the fileRequest
@@ -57,48 +36,14 @@ public class FinalNeo4JRequest {
 		this.fileRequest = fileRequest;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((documentPurpose == null) ? 0 : documentPurpose.hashCode());
-		result = prime * result + ((fileRequest == null) ? 0 : fileRequest.hashCode());
-		result = prime * result + ((metaData == null) ? 0 : metaData.hashCode());
-		result = prime * result + ((requirementElaboration == null) ? 0 : requirementElaboration.hashCode());
-		return result;
+	public String toString() {
+		return "FinalNeo4JRequest [fileRequest=" + fileRequest + "]";
 	}
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		FinalNeo4JRequest other = (FinalNeo4JRequest) obj;
-		if (documentPurpose == null) {
-			if (other.documentPurpose != null)
-				return false;
-		} else if (!documentPurpose.equals(other.documentPurpose))
-			return false;
-		if (fileRequest == null) {
-			if (other.fileRequest != null)
-				return false;
-		} else if (!fileRequest.equals(other.fileRequest))
-			return false;
-		if (metaData == null) {
-			if (other.metaData != null)
-				return false;
-		} else if (!metaData.equals(other.metaData))
-			return false;
-		if (requirementElaboration == null) {
-			if (other.requirementElaboration != null)
-				return false;
-		} else if (!requirementElaboration.equals(other.requirementElaboration))
-			return false;
-		return true;
-	}	
 	
 	
 }
