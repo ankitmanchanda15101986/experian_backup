@@ -1,11 +1,9 @@
 /**
  * 
  */
-package com.experian.dto.neo4j.response;
+package com.experian.dto.neo4j.response.taxation;
 
 import java.util.List;
-
-import com.experian.dto.neo4j.response.taxation.Taxation;
 
 /**
  * @author manchanda.a

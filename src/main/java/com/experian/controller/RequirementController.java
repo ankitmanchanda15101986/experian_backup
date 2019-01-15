@@ -10,21 +10,21 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
 
 import com.experian.dto.ExperianMatchedRequirementsRequest;
 import com.experian.dto.ExperianSearchRequest;
 import com.experian.dto.FileUploadResponse;
 import com.experian.dto.FileUploadResponseList;
 import com.experian.dto.aiml.response.AimlQualityScore;
-import com.experian.dto.aiml.response.AimlQualityScoreResponse;
 import com.experian.dto.chatbot.response.ChatbotFinalResponse;
+import com.experian.dto.neo4j.finalResponse.SavedDataResponse;
 import com.experian.dto.neo4j.request.FinalNeo4JRequest;
 import com.experian.dto.neo4j.response.SuggestionResponse;
 import com.experian.dto.neo4j.response.taxation.Taxation;
+import com.experian.resolver.ExcelView;
 import com.experian.service.ExternalService;
 import com.experian.validator.Validator;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 /**
  * @author manchanda.a
@@ -40,12 +40,19 @@ public class RequirementController {
 	@Autowired
 	private Validator validate;
 
-
 	@RequestMapping(value = "/submit", method = RequestMethod.POST)
-	private void submitRequirementToNeo4j(@RequestBody FinalNeo4JRequest request) {
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		System.out.println(" gson "+gson.toJson(request));
-		service.processFinalResponse(request);
+	private List<SavedDataResponse> submitRequirementToNeo4j(@RequestBody FinalNeo4JRequest request) {
+		return service.processFinalResponse(request);
+	}
+
+	/**
+	 * This method will generate brd document,when user click on generate document.
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/generate/brd", method = RequestMethod.POST, produces = "application/xlsx")
+	private ModelAndView generateBRDDocument(@RequestBody List<SavedDataResponse> request) {
+		return new ModelAndView(new ExcelView(),"request", request);
 	}
 
 	/**
@@ -72,7 +79,8 @@ public class RequirementController {
 	}
 
 	/**
-	 * This controller will be called when there is search and match conditions occurs.
+	 * This controller will be called when there is search and match conditions
+	 * occurs.
 	 * 
 	 * @param request
 	 * @return
@@ -111,14 +119,15 @@ public class RequirementController {
 	private List<Taxation> getTaxation() {
 		return service.getTaxation();
 	}
-	
+
 	/**
-	 * This controller will be called when chatbot send request to get quality score.
+	 * This controller will be called when chatbot send request to get quality
+	 * score.
+	 * 
 	 * @param request
 	 */
-	@RequestMapping(value="/chatbot/score", method = RequestMethod.POST)
+	@RequestMapping(value = "/chatbot/score", method = RequestMethod.POST)
 	private ChatbotFinalResponse getChatbotQualityScore(@RequestBody ExperianSearchRequest request) {
 		return service.calculateChatBotScore(request.getRequirement());
 	}
-	
 }

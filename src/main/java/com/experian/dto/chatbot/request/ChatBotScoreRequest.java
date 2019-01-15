@@ -5,7 +5,7 @@ package com.experian.dto.chatbot.request;
 
 import java.util.List;
 
-import com.experian.dto.neo4j.response.WordCategory;
+import com.experian.dto.neo4j.response.wordCategory.WordCategory;
 
 /**
  * @author Manchanda's

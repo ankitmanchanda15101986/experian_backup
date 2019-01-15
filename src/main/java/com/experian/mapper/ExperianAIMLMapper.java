@@ -20,7 +20,7 @@ import com.experian.dto.aiml.response.AimlTaxationResponse;
 import com.experian.dto.neo4j.RequirementStatement;
 import com.experian.dto.neo4j.RequirementSuggestions;
 import com.experian.dto.neo4j.response.SuggestionResponse;
-import com.experian.dto.neo4j.response.WordCategoryResponse;
+import com.experian.dto.neo4j.response.wordCategory.WordCategoryResponse;
 
 @Component
 public class ExperianAIMLMapper {

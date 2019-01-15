@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.experian.dto.neo4j.request.latest;
+package com.experian.dto.neo4j.suggestion.request;
 
 import java.util.List;
 

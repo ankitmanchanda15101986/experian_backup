@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.experian.dto.FileUploadResponseList;
-import com.experian.service.FileStorageService;
+import com.experian.service.FileReaderService;
 import com.experian.validator.Validator;
 
 /**
@@ -30,12 +30,12 @@ public class FileController {
 	private Validator validate;
 	
 	@Autowired
-	private FileStorageService fileStorageService;
+	private FileReaderService fileReaderService;
 	
 	@RequestMapping(value="/uploadFile", method=RequestMethod.POST)
 	public FileUploadResponseList uploadFile(@RequestParam("file") MultipartFile file) {
 		validate.validateFile(file);
-		FileUploadResponseList fileUploadResponseList = fileStorageService.readFile(file);
+		FileUploadResponseList fileUploadResponseList = fileReaderService.readFile(file);
 		return fileUploadResponseList;
 	}
 

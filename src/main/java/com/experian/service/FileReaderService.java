@@ -4,9 +4,6 @@
 package com.experian.service;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -31,24 +28,21 @@ import com.experian.dto.aiml.response.AimlQualityScoreResponse;
 import com.experian.dto.aiml.response.AimlTaxationResponse;
 import com.experian.dto.neo4j.RequirementStatement;
 import com.experian.dto.neo4j.RequirementSuggestions;
-import com.experian.dto.neo4j.request.latest.Neo4jSuggestionResponse;
-import com.experian.dto.neo4j.request.latest.SuggestionBasedOnMultipleRequirementRequest;
 import com.experian.dto.neo4j.response.SuggestionResponse;
-import com.experian.dto.neo4j.response.WordCategoryResponse;
+import com.experian.dto.neo4j.response.wordCategory.WordCategoryResponse;
+import com.experian.dto.neo4j.suggestion.request.Neo4jSuggestionResponse;
+import com.experian.dto.neo4j.suggestion.request.SuggestionBasedOnMultipleRequirementRequest;
 import com.experian.exception.FileStorageException;
 import com.experian.mapper.ExperianAIMLMapper;
 import com.experian.mapper.ExperianNeo4JMapper;
-import com.experian.properties.FileStorageProperties;
 
 /**
  * @author manchanda.a
  *
  */
 @Service
-public class FileStorageService {
-	private static final Logger logger = LoggerFactory.getLogger(FileStorageService.class);
-
-	private final Path fileStorageLocation;
+public class FileReaderService {
+	private static final Logger logger = LoggerFactory.getLogger(FileReaderService.class);
 
 	@Autowired
 	private ExternalService externalService;
@@ -62,15 +56,6 @@ public class FileStorageService {
 	@Autowired
 	private ExperianNeo4JMapper neo4jMapper;
 
-	public FileStorageService(FileStorageProperties fileStorageProperties) {
-		this.fileStorageLocation = Paths.get(fileStorageProperties.getUploadDir()).toAbsolutePath().normalize();
-		try {
-			Files.createDirectories(this.fileStorageLocation);
-		} catch (Exception ex) {
-			throw new FileStorageException("Could not create the directory where the uploaded files will be stored.",
-					ex);
-		}
-	}
 
 	/**
 	 * This method will read file from path and then save data into database.

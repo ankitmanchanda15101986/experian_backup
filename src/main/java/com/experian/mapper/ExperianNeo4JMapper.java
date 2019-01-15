@@ -9,14 +9,16 @@ import com.experian.dto.aiml.response.AimlFileResponse;
 import com.experian.dto.neo4j.RequirementStatement;
 import com.experian.dto.neo4j.RequirementSuggestions;
 import com.experian.dto.neo4j.Suggestions;
+import com.experian.dto.neo4j.finalResponse.FinalResponse;
+import com.experian.dto.neo4j.finalResponse.SavedDataResponse;
 import com.experian.dto.neo4j.request.Neo4JFileRequest;
 import com.experian.dto.neo4j.request.ShortCutDocument;
-import com.experian.dto.neo4j.request.latest.Neo4jSuggestionData;
-import com.experian.dto.neo4j.request.latest.Neo4jSuggestionDataList;
-import com.experian.dto.neo4j.request.latest.Neo4jSuggestionResponse;
-import com.experian.dto.neo4j.request.latest.SuggestionBasedOnMultipleRequirement;
-import com.experian.dto.neo4j.request.latest.SuggestionBasedOnMultipleRequirementRequest;
 import com.experian.dto.neo4j.response.SuggestionResponse;
+import com.experian.dto.neo4j.suggestion.request.Neo4jSuggestionData;
+import com.experian.dto.neo4j.suggestion.request.Neo4jSuggestionDataList;
+import com.experian.dto.neo4j.suggestion.request.Neo4jSuggestionResponse;
+import com.experian.dto.neo4j.suggestion.request.SuggestionBasedOnMultipleRequirement;
+import com.experian.dto.neo4j.suggestion.request.SuggestionBasedOnMultipleRequirementRequest;
 
 @Component
 public class ExperianNeo4JMapper {
@@ -120,5 +122,26 @@ public class ExperianNeo4JMapper {
 			neo4jFileRequests.add(neo4jFileRequest);
 		}
 		return neo4jFileRequests;
+	}
+	
+	/**
+	 * This method will convert list of final response to saved data response.
+	 * @param finalResponseList
+	 * @return
+	 */
+	public List<SavedDataResponse> convertFinalResponseToSavedData(List<FinalResponse> finalResponseList) {
+		List<SavedDataResponse> savedDataResponses = new ArrayList<>();
+		for (FinalResponse finalResponse : finalResponseList) {
+			SavedDataResponse savedDataResponse = new SavedDataResponse();
+			savedDataResponse.setDocumentElaboration(finalResponse.getRequirementElaboration());
+			savedDataResponse.setDocumentPurpose(finalResponse.getDocument().getDocumentPurpose());
+			savedDataResponse.setRequirementStatement(finalResponse.getRequirementStatement());
+			savedDataResponse.setTaxonomyLevel1(finalResponse.getLevel1());
+			savedDataResponse.setTaxonomyLevel2(finalResponse.getLevel2());
+			savedDataResponse.setTaxonomyLevel3(finalResponse.getLevel3());
+			savedDataResponse.setTaxonomyLevel4(finalResponse.getLevel4());
+			savedDataResponses.add(savedDataResponse);
+		}
+		return savedDataResponses;
 	}
 }

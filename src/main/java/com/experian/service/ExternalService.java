@@ -33,16 +33,18 @@ import com.experian.dto.chatbot.response.ChatbotFinalResponse;
 import com.experian.dto.neo4j.RequirementStatement;
 import com.experian.dto.neo4j.RequirementSuggestions;
 import com.experian.dto.neo4j.Suggestions;
+import com.experian.dto.neo4j.finalResponse.FinalResponse;
+import com.experian.dto.neo4j.finalResponse.SavedDataResponse;
 import com.experian.dto.neo4j.request.FinalNeo4JRequest;
 import com.experian.dto.neo4j.request.Neo4JFileRequest;
 import com.experian.dto.neo4j.request.Neo4jDocumentRequest;
 import com.experian.dto.neo4j.request.StatementModelsRequest;
-import com.experian.dto.neo4j.request.latest.Neo4jSuggestionResponse;
-import com.experian.dto.neo4j.request.latest.SuggestionBasedOnMultipleRequirementRequest;
 import com.experian.dto.neo4j.response.SuggestionResponse;
-import com.experian.dto.neo4j.response.WordCategory;
-import com.experian.dto.neo4j.response.WordCategoryResponse;
 import com.experian.dto.neo4j.response.taxation.Taxation;
+import com.experian.dto.neo4j.response.wordCategory.WordCategory;
+import com.experian.dto.neo4j.response.wordCategory.WordCategoryResponse;
+import com.experian.dto.neo4j.suggestion.request.Neo4jSuggestionResponse;
+import com.experian.dto.neo4j.suggestion.request.SuggestionBasedOnMultipleRequirementRequest;
 import com.experian.mapper.ExperianAIMLMapper;
 import com.experian.mapper.ExperianChatBotMapper;
 import com.experian.mapper.ExperianNeo4JMapper;
@@ -189,7 +191,7 @@ public class ExternalService {
 	 * @param request
 	 * @return
 	 */
-	public void processFinalResponse(FinalNeo4JRequest request) {
+	public List<SavedDataResponse> processFinalResponse(FinalNeo4JRequest request) {
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		Neo4jDocumentRequest documentRequest = null;
 		documentRequest = processDocumentInformation(request.getDocumentRequest());
@@ -198,9 +200,13 @@ public class ExternalService {
 			List<Neo4JFileRequest> neo4jFileRequest = neo4jMapper.createFinalMappingResponse(
 					request.getStatementModels(), documentRequest.getRequirementElaboration());
 			statementModelsRequest.setStatementModels(neo4jFileRequest);
-			template.postForEntity(neo4jRequirementSaveUri, statementModelsRequest,
-					Object.class);
+			System.out.println("processFinalResponse : "+gson.toJson(statementModelsRequest));
+			ResponseEntity<List<FinalResponse>> finalResponse = template.exchange(neo4jRequirementSaveUri,HttpMethod.POST, new HttpEntity<StatementModelsRequest> (statementModelsRequest),
+					new ParameterizedTypeReference<List<FinalResponse>>(){
+					});
+			return neo4jMapper.convertFinalResponseToSavedData(finalResponse.getBody());
 		}
+		return null;
 	}
 
 	/**

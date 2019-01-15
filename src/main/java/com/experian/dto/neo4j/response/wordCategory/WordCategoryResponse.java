@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.experian.dto.neo4j.response;
+package com.experian.dto.neo4j.response.wordCategory;
 
 import java.util.List;
 
