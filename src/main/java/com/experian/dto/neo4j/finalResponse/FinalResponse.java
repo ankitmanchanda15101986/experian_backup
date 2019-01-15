@@ -4,7 +4,6 @@
 package com.experian.dto.neo4j.finalResponse;
 
 import com.experian.dto.neo4j.request.Neo4jDocumentRequest;
-import com.experian.dto.neo4j.request.WordCount;
 
 /**
  * @author manchanda.a
@@ -21,10 +20,8 @@ public class FinalResponse {
 	private String level2;
 	private TaxonomyLevel3 taxonomyLevel3;
 	private String level3;
-	private String taxonomyLevel4;
 	private String level4;
 	private String requirementStatement;
-	private WordCount wordCategoryCount;
 	/**
 	 * @return the document
 	 */
@@ -133,18 +130,7 @@ public class FinalResponse {
 	public void setLevel3(String level3) {
 		this.level3 = level3;
 	}
-	/**
-	 * @return the taxonomyLevel4
-	 */
-	public String getTaxonomyLevel4() {
-		return taxonomyLevel4;
-	}
-	/**
-	 * @param taxonomyLevel4 the taxonomyLevel4 to set
-	 */
-	public void setTaxonomyLevel4(String taxonomyLevel4) {
-		this.taxonomyLevel4 = taxonomyLevel4;
-	}
+	
 	/**
 	 * @return the level4
 	 */
@@ -169,21 +155,5 @@ public class FinalResponse {
 	public void setRequirementStatement(String requirementStatement) {
 		this.requirementStatement = requirementStatement;
 	}
-	/**
-	 * @return the wordCategoryCount
-	 */
-	public WordCount getWordCategoryCount() {
-		return wordCategoryCount;
-	}
-	/**
-	 * @param wordCategoryCount the wordCategoryCount to set
-	 */
-	public void setWordCategoryCount(WordCount wordCategoryCount) {
-		this.wordCategoryCount = wordCategoryCount;
-	}
-	
-	
-	
-	
-	
+		
 }
