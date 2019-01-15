@@ -9,7 +9,8 @@ import com.experian.dto.aiml.response.AimlFileResponse;
 import com.experian.dto.neo4j.RequirementStatement;
 import com.experian.dto.neo4j.RequirementSuggestions;
 import com.experian.dto.neo4j.Suggestions;
-import com.experian.dto.neo4j.TaxationBasedSuggestion;
+import com.experian.dto.neo4j.request.Neo4JFileRequest;
+import com.experian.dto.neo4j.request.ShortCutDocument;
 import com.experian.dto.neo4j.request.latest.Neo4jSuggestionData;
 import com.experian.dto.neo4j.request.latest.Neo4jSuggestionDataList;
 import com.experian.dto.neo4j.request.latest.Neo4jSuggestionResponse;
@@ -101,7 +102,23 @@ public class ExperianNeo4JMapper {
 			suggestions.setRequirementElaboration(neo4jSuggestionData.getRequirementElaboration());
 			suggestions.setSuggestion(neo4jSuggestionData.getRequirementStatement());
 		}
-		return suggestions;
-		
+		return suggestions;	
+	}
+	
+	/**
+	 * This method will set requirement elaboration to neo4jFileRequest.
+	 * @param neo4jFileRequestsList
+	 * @param requirementElab
+	 * @return
+	 */
+	public List<Neo4JFileRequest> createFinalMappingResponse(List<Neo4JFileRequest> neo4jFileRequestsList, String requirementElab) {
+		List<Neo4JFileRequest> neo4jFileRequests = new ArrayList<>();
+		ShortCutDocument shortCutDocument = new ShortCutDocument();
+		shortCutDocument.setRequirementElaboration(requirementElab);
+		for (Neo4JFileRequest neo4jFileRequest : neo4jFileRequestsList) {
+			neo4jFileRequest.setShortCutDocument(shortCutDocument);
+			neo4jFileRequests.add(neo4jFileRequest);
+		}
+		return neo4jFileRequests;
 	}
 }

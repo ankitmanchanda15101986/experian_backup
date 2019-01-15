@@ -7,7 +7,6 @@ import java.util.List;
 
 import com.experian.dto.neo4j.RequirementStatement;
 import com.experian.dto.neo4j.response.WordCategory;
-import com.experian.dto.neo4j.response.WordCategoryResponse;
 
 /**
  * @author manchanda.a

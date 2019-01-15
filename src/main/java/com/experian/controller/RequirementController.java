@@ -5,8 +5,6 @@ package com.experian.controller;
 
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +15,7 @@ import com.experian.dto.ExperianMatchedRequirementsRequest;
 import com.experian.dto.ExperianSearchRequest;
 import com.experian.dto.FileUploadResponse;
 import com.experian.dto.FileUploadResponseList;
+import com.experian.dto.aiml.response.AimlQualityScore;
 import com.experian.dto.aiml.response.AimlQualityScoreResponse;
 import com.experian.dto.chatbot.response.ChatbotFinalResponse;
 import com.experian.dto.neo4j.request.FinalNeo4JRequest;
@@ -24,6 +23,8 @@ import com.experian.dto.neo4j.response.SuggestionResponse;
 import com.experian.dto.neo4j.response.taxation.Taxation;
 import com.experian.service.ExternalService;
 import com.experian.validator.Validator;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * @author manchanda.a
@@ -33,8 +34,6 @@ import com.experian.validator.Validator;
 @RequestMapping("/api")
 public class RequirementController {
 
-	private static final Logger logger = LoggerFactory.getLogger(RequirementController.class);
-
 	@Autowired
 	private ExternalService service;
 
@@ -43,8 +42,10 @@ public class RequirementController {
 
 
 	@RequestMapping(value = "/submit", method = RequestMethod.POST)
-	private boolean submitRequirementToNeo4j(@RequestBody FinalNeo4JRequest request) {
-		return service.processFinalResponse(request);
+	private void submitRequirementToNeo4j(@RequestBody FinalNeo4JRequest request) {
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		System.out.println(" gson "+gson.toJson(request));
+		service.processFinalResponse(request);
 	}
 
 	/**
@@ -66,7 +67,7 @@ public class RequirementController {
 	 * @return
 	 */
 	@RequestMapping(value = "/refresh", method = RequestMethod.POST)
-	private AimlQualityScoreResponse getScore(@RequestBody ExperianSearchRequest request) {
+	private AimlQualityScore getScore(@RequestBody ExperianSearchRequest request) {
 		return service.refreshQualityScore(request.getRequirement());
 	}
 

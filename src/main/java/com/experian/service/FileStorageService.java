@@ -136,8 +136,9 @@ public class FileStorageService {
 				Row currentRow = iterator.next();
 				if (count > 1) {
 					RequirementStatement requirement = new RequirementStatement();
-					requirement.setID(count);
-					requirement.setRequirementStatement(currentRow.getCell(0).getStringCellValue());
+					Integer id = (int) currentRow.getCell(0).getNumericCellValue();
+					requirement.setID(id);
+					requirement.setRequirementStatement(currentRow.getCell(1).getStringCellValue());
 					logger.debug("requirement number " + requirement.getID() + " requirement : "
 							+ requirement.getRequirementStatement());
 					requirementList.add(requirement);

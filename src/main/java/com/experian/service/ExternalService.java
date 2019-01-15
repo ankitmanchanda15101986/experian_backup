@@ -24,6 +24,7 @@ import com.experian.dto.aiml.request.AimlQualityScoreRequest;
 import com.experian.dto.aiml.request.AimlTaxationRequest;
 import com.experian.dto.aiml.response.AimlFileFinalResponse;
 import com.experian.dto.aiml.response.AimlFileResponse;
+import com.experian.dto.aiml.response.AimlQualityScore;
 import com.experian.dto.aiml.response.AimlQualityScoreResponse;
 import com.experian.dto.aiml.response.AimlTaxationResponse;
 import com.experian.dto.chatbot.request.ChatBotScoreRequest;
@@ -33,7 +34,9 @@ import com.experian.dto.neo4j.RequirementStatement;
 import com.experian.dto.neo4j.RequirementSuggestions;
 import com.experian.dto.neo4j.Suggestions;
 import com.experian.dto.neo4j.request.FinalNeo4JRequest;
+import com.experian.dto.neo4j.request.Neo4JFileRequest;
 import com.experian.dto.neo4j.request.Neo4jDocumentRequest;
+import com.experian.dto.neo4j.request.StatementModelsRequest;
 import com.experian.dto.neo4j.request.latest.Neo4jSuggestionResponse;
 import com.experian.dto.neo4j.request.latest.SuggestionBasedOnMultipleRequirementRequest;
 import com.experian.dto.neo4j.response.SuggestionResponse;
@@ -67,7 +70,7 @@ public class ExternalService {
 
 	@Autowired
 	private ExperianAIMLMapper aimlMapper;
-	
+
 	@Autowired
 	private ExperianChatBotMapper chatbotMapper;
 
@@ -77,8 +80,8 @@ public class ExternalService {
 	@Value("${service.aiml.quality.score.uri}")
 	private String aimlGetQualityScoreUri;
 
-	@Value("${service.save.uri}")
-	private String saveUri;
+	@Value("${service.neo4j.save.uri}")
+	private String neo4jRequirementSaveUri;
 
 	@Value("${service.word.category.uri}")
 	private String wordCategoryUri;
@@ -88,12 +91,13 @@ public class ExternalService {
 
 	@Value("${service.chatbot.calculate.score.uri}")
 	private String chatbotCalculateScoreUri;
-	
+
 	@Value("${service.neo4j.suggestion.latest.uri}")
 	private String neo4jSuggestionLatestUri;
-	
-	@Value("$(service.neo4j.document.save.uri)")
+
+	@Value("${service.neo4j.document.save.uri}")
 	private String neo4jDocumentSaveInfoUri;
+
 	/**
 	 * This method will call AI/ML service and pass requirement statement , in
 	 * return it will get taxation level 1,2,3,4.
@@ -118,10 +122,13 @@ public class ExternalService {
 				AimlQualityScoreResponse.class);
 		return response.getBody();
 
-	}	
-	
-	public List<Neo4jSuggestionResponse> processFileToNeo4jToGetSuggestion(SuggestionBasedOnMultipleRequirementRequest request) {
-		ResponseEntity<List<Neo4jSuggestionResponse>> response = template.exchange(neo4jSuggestionLatestUri,  HttpMethod.POST, new HttpEntity<SuggestionBasedOnMultipleRequirementRequest>(request), new ParameterizedTypeReference<List<Neo4jSuggestionResponse>>() {
+	}
+
+	public List<Neo4jSuggestionResponse> processFileToNeo4jToGetSuggestion(
+			SuggestionBasedOnMultipleRequirementRequest request) {
+		ResponseEntity<List<Neo4jSuggestionResponse>> response = template.exchange(neo4jSuggestionLatestUri,
+				HttpMethod.POST, new HttpEntity<SuggestionBasedOnMultipleRequirementRequest>(request),
+				new ParameterizedTypeReference<List<Neo4jSuggestionResponse>>() {
 				});
 		return response.getBody();
 	}
@@ -163,9 +170,11 @@ public class ExternalService {
 					experianFileRequest, aimlTaxationResponse, aimlQualityScoreRespnse);
 
 			// Calling Neo4j Service to get suggestion.
-			SuggestionBasedOnMultipleRequirementRequest suggestionRequest = neo4jMapper.convertRequirementSuggestionToSuggestionRequest(aimlFileFinalResponse);
-			List<Neo4jSuggestionResponse> neo4jSuggestionResponse = processFileToNeo4jToGetSuggestion(suggestionRequest);
-	
+			SuggestionBasedOnMultipleRequirementRequest suggestionRequest = neo4jMapper
+					.convertRequirementSuggestionToSuggestionRequest(aimlFileFinalResponse);
+			List<Neo4jSuggestionResponse> neo4jSuggestionResponse = processFileToNeo4jToGetSuggestion(
+					suggestionRequest);
+
 			SuggestionResponse suggestionResponse = neo4jMapper.convertSuggestionBasedResponse(neo4jSuggestionResponse);
 			logger.debug("Neo4j file suggestion ", suggestionResponse.getSuggestions().toString());
 			return suggestionResponse;
@@ -180,18 +189,29 @@ public class ExternalService {
 	 * @param request
 	 * @return
 	 */
-	public boolean processFinalResponse(FinalNeo4JRequest request) {
-		ResponseEntity<Boolean> response = template.postForEntity(saveUri, request, Boolean.class);
-		return response.getBody();
+	public void processFinalResponse(FinalNeo4JRequest request) {
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		Neo4jDocumentRequest documentRequest = null;
+		documentRequest = processDocumentInformation(request.getDocumentRequest());
+		if (!documentRequest.getRequirementElaboration().isEmpty()) {
+			StatementModelsRequest statementModelsRequest = new StatementModelsRequest();
+			List<Neo4JFileRequest> neo4jFileRequest = neo4jMapper.createFinalMappingResponse(
+					request.getStatementModels(), documentRequest.getRequirementElaboration());
+			statementModelsRequest.setStatementModels(neo4jFileRequest);
+			template.postForEntity(neo4jRequirementSaveUri, statementModelsRequest,
+					Object.class);
+		}
 	}
-	
+
 	/**
 	 * This method will save document information in neo4j.
+	 * 
 	 * @param request
 	 * @return
 	 */
 	public Neo4jDocumentRequest processDocumentInformation(Neo4jDocumentRequest request) {
-		ResponseEntity<Neo4jDocumentRequest> response = template.postForEntity(neo4jDocumentSaveInfoUri, request, Neo4jDocumentRequest.class);
+		ResponseEntity<Neo4jDocumentRequest> response = template.postForEntity(neo4jDocumentSaveInfoUri, request,
+				Neo4jDocumentRequest.class);
 		return response.getBody();
 	}
 
@@ -249,10 +269,13 @@ public class ExternalService {
 			if (aimlFileFinalResponse != null) {
 				// Call to get suggestion.
 				// Calling Neo4j Service to get suggestion.
-				SuggestionBasedOnMultipleRequirementRequest suggestionRequest = neo4jMapper.convertRequirementSuggestionToSuggestionRequest(aimlFileFinalResponse);
-				List<Neo4jSuggestionResponse> neo4jSuggestionResponse = processFileToNeo4jToGetSuggestion(suggestionRequest);
-		
-				SuggestionResponse suggestionResponse = neo4jMapper.convertSuggestionBasedResponse(neo4jSuggestionResponse);
+				SuggestionBasedOnMultipleRequirementRequest suggestionRequest = neo4jMapper
+						.convertRequirementSuggestionToSuggestionRequest(aimlFileFinalResponse);
+				List<Neo4jSuggestionResponse> neo4jSuggestionResponse = processFileToNeo4jToGetSuggestion(
+						suggestionRequest);
+
+				SuggestionResponse suggestionResponse = neo4jMapper
+						.convertSuggestionBasedResponse(neo4jSuggestionResponse);
 				logger.debug("Neo4j file suggestion ", suggestionResponse.getSuggestions().toString());
 				if (suggestionResponse != null) {
 					Map<AimlFileResponse, RequirementSuggestions> map = helper
@@ -369,7 +392,6 @@ public class ExternalService {
 	 * @return
 	 */
 	public List<Taxation> getTaxation() {
-		System.out.println("taxationMapUri : "+taxationMapUri);
 		ResponseEntity<List<Taxation>> response = template.exchange(taxationMapUri, HttpMethod.GET, null,
 				new ParameterizedTypeReference<List<Taxation>>() {
 				});
@@ -390,12 +412,13 @@ public class ExternalService {
 			ChatBotScoreRequest request = new ChatBotScoreRequest();
 			request.setRequirement(requirement);
 			request.setWordCategory(wordCategoryResponse.getWordCategory());
-			logger.debug("ChatBotScoreRequest : "+gson.toJson(request));
-			ResponseEntity<ChatBotScoreResponse> chatBotScoreResponse = template.postForEntity(chatbotCalculateScoreUri, request,
-					ChatBotScoreResponse.class);
-			logger.debug("ChatBotScoreResponse : "+gson.toJson(chatBotScoreResponse.getBody()));
-			AimlQualityScoreResponse aimlQualityScoreResponse = refreshQualityScore(requirement);
-			ChatbotFinalResponse chatbotFinalResponse = chatbotMapper.createChatBotResponseToIncludeQualityResponse(aimlQualityScoreResponse, chatBotScoreResponse.getBody());
+			logger.debug("ChatBotScoreRequest : " + gson.toJson(request));
+			ResponseEntity<ChatBotScoreResponse> chatBotScoreResponse = template.postForEntity(chatbotCalculateScoreUri,
+					request, ChatBotScoreResponse.class);
+			logger.debug("ChatBotScoreResponse : " + gson.toJson(chatBotScoreResponse.getBody()));
+			AimlQualityScore aimlQualityScoreResponse = refreshQualityScore(requirement);
+			ChatbotFinalResponse chatbotFinalResponse = chatbotMapper.createChatBotResponseToIncludeQualityResponse(
+					aimlQualityScoreResponse, chatBotScoreResponse.getBody());
 			return chatbotFinalResponse;
 		}
 
@@ -432,10 +455,11 @@ public class ExternalService {
 
 	/**
 	 * This method will calculate get quality score based on requirement.
+	 * 
 	 * @param requirement
 	 * @return
 	 */
-	public AimlQualityScoreResponse refreshQualityScore(String requirement) {
+	public AimlQualityScore refreshQualityScore(String requirement) {
 		// Get Word count.
 		WordCategoryResponse wordCategoryResponse = getWordCategoryFromNeo4j();
 		if (wordCategoryResponse != null) {
@@ -452,7 +476,7 @@ public class ExternalService {
 			// Call AIML to process request to get quality score.
 			AimlQualityScoreResponse aimlQualityScoreRespnse = processFileToAimlToGetQualityScore(
 					aimlQualityScoreRequest);
-			return aimlQualityScoreRespnse;
+			return aimlQualityScoreRespnse.getQualityScore().get(0);
 		}
 		return null;
 	}

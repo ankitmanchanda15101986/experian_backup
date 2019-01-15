@@ -5,7 +5,7 @@ import java.util.List;
 public class FinalNeo4JRequest {
 
 	private Neo4jDocumentRequest documentRequest;
-	private List<Neo4JFileRequest> fileRequest;
+	private List<Neo4JFileRequest> statementModels;
 	
 	
 	/**
@@ -23,17 +23,17 @@ public class FinalNeo4JRequest {
 	}
 
 	/**
-	 * @return the fileRequest
+	 * @return the statementModels
 	 */
-	public List<Neo4JFileRequest> getFileRequest() {
-		return fileRequest;
+	public List<Neo4JFileRequest> getStatementModels() {
+		return statementModels;
 	}
 
 	/**
-	 * @param fileRequest the fileRequest to set
+	 * @param statementModels the statementModels to set
 	 */
-	public void setFileRequest(List<Neo4JFileRequest> fileRequest) {
-		this.fileRequest = fileRequest;
+	public void setStatementModels(List<Neo4JFileRequest> statementModels) {
+		this.statementModels = statementModels;
 	}
 
 	/* (non-Javadoc)
@@ -41,9 +41,7 @@ public class FinalNeo4JRequest {
 	 */
 	@Override
 	public String toString() {
-		return "FinalNeo4JRequest [fileRequest=" + fileRequest + "]";
+		return "FinalNeo4JRequest [documentRequest=" + documentRequest + ", statementModels=" + statementModels + "]";
 	}
-
-	
 	
 }
