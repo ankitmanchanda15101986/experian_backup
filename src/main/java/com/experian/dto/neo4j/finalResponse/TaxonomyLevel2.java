@@ -3,14 +3,29 @@
  */
 package com.experian.dto.neo4j.finalResponse;
 
+import java.util.Set;
+
 /**
  * @author manchanda.a
  *
  */
 public class TaxonomyLevel2 {
 
+	private Long id;
 	private String label;
-	private String taxonomyLevel3;
+	private Set<TaxonomyLevel3> taxonomyLevel3;
+	/**
+	 * @return the id
+	 */
+	public Long getId() {
+		return id;
+	}
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(Long id) {
+		this.id = id;
+	}
 	/**
 	 * @return the label
 	 */
@@ -26,15 +41,13 @@ public class TaxonomyLevel2 {
 	/**
 	 * @return the taxonomyLevel3
 	 */
-	public String getTaxonomyLevel3() {
+	public Set<TaxonomyLevel3> getTaxonomyLevel3() {
 		return taxonomyLevel3;
 	}
 	/**
 	 * @param taxonomyLevel3 the taxonomyLevel3 to set
 	 */
-	public void setTaxonomyLevel3(String taxonomyLevel3) {
+	public void setTaxonomyLevel3(Set<TaxonomyLevel3> taxonomyLevel3) {
 		this.taxonomyLevel3 = taxonomyLevel3;
 	}
-	
-	
 }

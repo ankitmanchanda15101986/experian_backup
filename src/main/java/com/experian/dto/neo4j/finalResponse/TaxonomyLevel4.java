@@ -9,7 +9,23 @@ package com.experian.dto.neo4j.finalResponse;
  */
 public class TaxonomyLevel4 {
 
+	private Long id;
+	
 	private String label;
+
+	/**
+	 * @return the id
+	 */
+	public Long getId() {
+		return id;
+	}
+
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(Long id) {
+		this.id = id;
+	}
 
 	/**
 	 * @return the label
@@ -24,6 +40,6 @@ public class TaxonomyLevel4 {
 	public void setLabel(String label) {
 		this.label = label;
 	}
-	
-	
+
+
 }

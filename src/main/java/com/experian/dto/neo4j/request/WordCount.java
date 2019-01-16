@@ -1,14 +1,28 @@
 package com.experian.dto.neo4j.request;
 
-import java.util.List;
+import java.util.Set;
 
 public class WordCount {
 
+	private Long id;
 	private String categoryName;
 	private int totalCount;
-	private List<Details> details;
+	private Set<Details> details;
 	
 	
+	
+	/**
+	 * @return the id
+	 */
+	public Long getId() {
+		return id;
+	}
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(Long id) {
+		this.id = id;
+	}
 	/**
 	 * @return the categoryName
 	 */
@@ -36,14 +50,14 @@ public class WordCount {
 	/**
 	 * @return the details
 	 */
-	public List<Details> getDetails() {
+	public Set<Details> getDetails() {
 		return details;
 	}
 	/**
 	 * @param details the details to set
 	 */
-	public void setDetails(List<Details> details) {
+	public void setDetails(Set<Details> details) {
 		this.details = details;
-	}	
+	}
 	
 }

@@ -9,9 +9,18 @@ package com.experian.dto.neo4j.request;
  */
 public class Neo4jDocumentRequest {
 
+	private Long id;
 	private String documentPurpose;
 	private MetaDataRequest metaData;
 	private String requirementElaboration;
+	
+	
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
+	}
 	/**
 	 * @return the documentPurpose
 	 */

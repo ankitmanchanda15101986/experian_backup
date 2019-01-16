@@ -9,19 +9,20 @@ package com.experian.dto.neo4j.request;
  */
 public class Details {
 
-	private Integer totalCount;
+	private Long id;
 	private String word;
+	private int totalCount;
 	/**
-	 * @return the totalCount
+	 * @return the id
 	 */
-	public Integer getTotalCount() {
-		return totalCount;
+	public Long getId() {
+		return id;
 	}
 	/**
-	 * @param totalCount the totalCount to set
+	 * @param id the id to set
 	 */
-	public void setTotalCount(Integer totalCount) {
-		this.totalCount = totalCount;
+	public void setId(Long id) {
+		this.id = id;
 	}
 	/**
 	 * @return the word
@@ -35,6 +36,18 @@ public class Details {
 	public void setWord(String word) {
 		this.word = word;
 	}
+	/**
+	 * @return the totalCount
+	 */
+	public int getTotalCount() {
+		return totalCount;
+	}
+	/**
+	 * @param totalCount the totalCount to set
+	 */
+	public void setTotalCount(int totalCount) {
+		this.totalCount = totalCount;
+	}
 	
-	
+
 }
