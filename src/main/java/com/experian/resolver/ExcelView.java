@@ -76,9 +76,9 @@ public class ExcelView extends AbstractXlsView {
         coverSheet.setColumnWidth(0,2400);
         coverSheet.setColumnWidth(1,15000);
         coverSheet.setColumnWidth(2,19000);
-        Row coverSheetRow = coverSheet.createRow(8);
+        Row coverSheetRow = coverSheet.createRow(2);
         try {
-        	File file = new ClassPathResource("experian.png").getFile();
+        	/*File file = new ClassPathResource("experian.png").getFile();
             FileInputStream stream =
 			        new FileInputStream(file);
 			byte[] bytes = IOUtils.toByteArray(stream);
@@ -87,35 +87,25 @@ public class ExcelView extends AbstractXlsView {
 
 			CreationHelper helper = workbook.getCreationHelper();
 
-			//create sheet
-			
-			// Create the drawing patriarch. This is the top level container for all shapes. 
 			Drawing drawing = coverSheet.createDrawingPatriarch();
 
-			//add a picture shape
 			ClientAnchor anchor = helper.createClientAnchor();
-			//set top-left corner of the picture,
-			//subsequent call of Picture#resize() will operate relative to it
 			anchor.setCol1(0);
 			anchor.setRow1(9);
 			Picture pict = drawing.createPicture(anchor, pictureIdx);
 
-			//auto-size picture relative to its top-left corner
 			pict.resize();
-			
+			*/
 			coverSheetRow.setHeight((short)600);
 			coverSheetRow.createCell(1).setCellValue("Requirement Elaboration");
 			coverSheetRow.getCell(1).setCellStyle(style2);
-			coverSheetRow.createCell(2);
-			//coverSheetRow.getCell(2).setCellStyle(style2);
+			coverSheetRow.createCell(2).setCellValue(savedDataResponseList.get(0).getDocumentElaboration());
+			coverSheetRow.getCell(2).setCellStyle(style2);
 			
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		} 
         
         // create excel xls sheet
         Sheet documentPurpose = workbook.createSheet("Document Purpose");
@@ -124,8 +114,10 @@ public class ExcelView extends AbstractXlsView {
         Row documentPurposeRow = documentPurpose.createRow(2);
         documentPurposeRow.createCell(1).setCellValue("Document Purpose");
         documentPurposeRow.getCell(1).setCellStyle(style1);
-        Row documentPurposeRow3 = documentPurpose.createRow(3);
-        documentPurposeRow3.createCell(1);
+       // Row documentPurposeRow3 = documentPurpose.createRow(3);
+       // documentPurposeRow3.createCell(1).setCellValue(savedDataResponseList.get(0).getDocumentPurpose());
+       
+        
         Sheet sheet = workbook.createSheet("Requirement Elaboration");
         sheet.setDefaultColumnWidth(30);
 
@@ -146,8 +138,6 @@ public class ExcelView extends AbstractXlsView {
 
         for (SavedDataResponse savedDataResponse : savedDataResponseList) {
             Row userRow = sheet.createRow(rowCount++);
-            documentPurposeRow3.getCell(1).setCellValue(savedDataResponse.getDocumentPurpose());
-            coverSheetRow.getCell(2).setCellValue(savedDataResponse.getDocumentElaboration());
             userRow.createCell(0).setCellValue(savedDataResponse.getTaxonomyLevel1());
             userRow.createCell(1).setCellValue(savedDataResponse.getTaxonomyLevel2());
             userRow.createCell(2).setCellValue(savedDataResponse.getTaxonomyLevel3());

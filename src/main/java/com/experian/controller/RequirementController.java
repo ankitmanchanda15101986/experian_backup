@@ -41,7 +41,7 @@ public class RequirementController {
 	private Validator validate;
 
 	@RequestMapping(value = "/submit", method = RequestMethod.POST)
-	private List<SavedDataResponse> submitRequirementToNeo4j(@RequestBody FinalNeo4JRequest request) {
+	public List<SavedDataResponse> submitRequirementToNeo4j(@RequestBody FinalNeo4JRequest request) {
 		return service.processFinalResponse(request);
 	}
 
@@ -51,7 +51,7 @@ public class RequirementController {
 	 * @return
 	 */
 	@RequestMapping(value = "/generate/brd", method = RequestMethod.POST, produces = "application/xlsx")
-	private ModelAndView generateBRDDocument(@RequestBody List<SavedDataResponse> request) {
+	public ModelAndView generateBRDDocument(@RequestBody List<SavedDataResponse> request) {
 		return new ModelAndView(new ExcelView(),"request", request);
 	}
 
@@ -61,7 +61,7 @@ public class RequirementController {
 	 * @return
 	 */
 	@RequestMapping(value = "/search", method = RequestMethod.POST)
-	private SuggestionResponse searchResource(@RequestBody ExperianSearchRequest request) {
+	public SuggestionResponse searchResource(@RequestBody ExperianSearchRequest request) {
 		validate.validateSearchText(request.getRequirement());
 		SuggestionResponse response = service.searchRequirementToGetSuggestions(request.getRequirement());
 		return response;
@@ -74,7 +74,7 @@ public class RequirementController {
 	 * @return
 	 */
 	@RequestMapping(value = "/refresh", method = RequestMethod.POST)
-	private AimlQualityScore getScore(@RequestBody ExperianSearchRequest request) {
+	public AimlQualityScore getScore(@RequestBody ExperianSearchRequest request) {
 		return service.refreshQualityScore(request.getRequirement());
 	}
 
@@ -86,7 +86,7 @@ public class RequirementController {
 	 * @return
 	 */
 	@RequestMapping(value = "/add/matching", method = RequestMethod.POST)
-	private FileUploadResponseList addNewResourceMatched(@RequestBody ExperianMatchedRequirementsRequest request) {
+	public FileUploadResponseList addNewResourceMatched(@RequestBody ExperianMatchedRequirementsRequest request) {
 		return service.addMatchedRequirement(request.getMatchedRequirements());
 	}
 
@@ -97,7 +97,7 @@ public class RequirementController {
 	 * @return
 	 */
 	@RequestMapping(value = "/add/notMatching", method = RequestMethod.POST)
-	private FileUploadResponse addNoMatchFoundForResource(@RequestBody ExperianSearchRequest request) {
+	public FileUploadResponse addNoMatchFoundForResource(@RequestBody ExperianSearchRequest request) {
 		return service.addNoMatchedRequirement(request.getRequirement());
 	}
 
@@ -108,7 +108,7 @@ public class RequirementController {
 	 * @return
 	 */
 	@RequestMapping(value = "/add/new", method = RequestMethod.POST)
-	private FileUploadResponse addNewResource(@RequestBody ExperianSearchRequest request) {
+	public FileUploadResponse addNewResource(@RequestBody ExperianSearchRequest request) {
 		return service.addNewRequirement(request.getRequirement());
 	}
 
@@ -116,7 +116,7 @@ public class RequirementController {
 	 * This controller will be called to retrieve taxation mapping.
 	 */
 	@RequestMapping(value = "/getTaxation", method = RequestMethod.GET)
-	private List<Taxation> getTaxation() {
+	public List<Taxation> getTaxation() {
 		return service.getTaxation();
 	}
 
@@ -127,7 +127,7 @@ public class RequirementController {
 	 * @param request
 	 */
 	@RequestMapping(value = "/chatbot/score", method = RequestMethod.POST)
-	private ChatbotFinalResponse getChatbotQualityScore(@RequestBody ExperianSearchRequest request) {
+	public ChatbotFinalResponse getChatbotQualityScore(@RequestBody ExperianSearchRequest request) {
 		return service.calculateChatBotScore(request.getRequirement());
 	}
 }
