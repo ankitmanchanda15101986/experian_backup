@@ -193,20 +193,19 @@ public class ExternalService {
 	 */
 	public List<SavedDataResponse> processFinalResponse(FinalNeo4JRequest request) {
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		Neo4jDocumentRequest documentRequest = null;
-		documentRequest = processDocumentInformation(request.getDocumentRequest());
-		if (!documentRequest.getRequirementElaboration().isEmpty()) {
-			StatementModelsRequest statementModelsRequest = new StatementModelsRequest();
-			List<Neo4JFileRequest> neo4jFileRequest = neo4jMapper.createFinalMappingResponse(
-					request.getStatementModels(), documentRequest.getRequirementElaboration());
-			statementModelsRequest.setStatementModels(neo4jFileRequest);
-			System.out.println("processFinalResponse : "+gson.toJson(statementModelsRequest));
-			ResponseEntity<List<FinalResponse>> finalResponse = template.exchange(neo4jRequirementSaveUri,HttpMethod.POST, new HttpEntity<StatementModelsRequest> (statementModelsRequest),
-					new ParameterizedTypeReference<List<FinalResponse>>(){
-					});
-			return neo4jMapper.convertFinalResponseToSavedData(finalResponse.getBody());
-		}
-		return null;
+		// Neo4jDocumentRequest documentRequest = null;
+		// documentRequest =
+		// processDocumentInformation(request.getDocumentRequest());
+		StatementModelsRequest statementModelsRequest = new StatementModelsRequest();
+		List<Neo4JFileRequest> neo4jFileRequest = neo4jMapper.createFinalMappingResponse(request.getStatementModels(),"Axis Bank Tallyman");
+		//documentRequest.getRequirementElaboration());
+		statementModelsRequest.setStatementModels(neo4jFileRequest);
+		System.out.println("processFinalResponse : " + gson.toJson(statementModelsRequest));
+		ResponseEntity<List<FinalResponse>> finalResponse = template.exchange(neo4jRequirementSaveUri, HttpMethod.POST,
+				new HttpEntity<StatementModelsRequest>(statementModelsRequest),
+				new ParameterizedTypeReference<List<FinalResponse>>() {
+				});
+		return neo4jMapper.convertFinalResponseToSavedData(finalResponse.getBody());
 	}
 
 	/**

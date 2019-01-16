@@ -1,9 +1,5 @@
 package com.experian.resolver;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -12,17 +8,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.ClientAnchor;
-import org.apache.poi.ss.usermodel.CreationHelper;
-import org.apache.poi.ss.usermodel.Drawing;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.Picture;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.util.IOUtils;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.servlet.view.document.AbstractXlsView;
 
 import com.experian.dto.neo4j.finalResponse.SavedDataResponse;
@@ -45,6 +35,7 @@ public class ExcelView extends AbstractXlsView {
         font.setFontName("Arial");
         style.setFillForegroundColor(HSSFColor.GREEN.index);
         style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        style.setWrapText(true);
         font.setBold(true);
         font.setColor(HSSFColor.WHITE.index);
         style.setFont(font);
@@ -55,6 +46,7 @@ public class ExcelView extends AbstractXlsView {
         font1.setFontName("Arial");
         style1.setFillForegroundColor(HSSFColor.WHITE.index);
         style1.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        style1.setWrapText(true);
         font1.setBold(true);
         font1.setColor(HSSFColor.GREEN.index);
         font1.setFontHeightInPoints((short)30);
@@ -72,7 +64,7 @@ public class ExcelView extends AbstractXlsView {
         font2.setFontHeightInPoints((short)18);
         style2.setFont(font2);
         
-        Sheet coverSheet = workbook.createSheet("CoverSheet");
+       /* Sheet coverSheet = workbook.createSheet("CoverSheet");
         coverSheet.setColumnWidth(0,2400);
         coverSheet.setColumnWidth(1,15000);
         coverSheet.setColumnWidth(2,19000);
@@ -95,7 +87,7 @@ public class ExcelView extends AbstractXlsView {
 			Picture pict = drawing.createPicture(anchor, pictureIdx);
 
 			pict.resize();
-			*/
+			
 			coverSheetRow.setHeight((short)600);
 			coverSheetRow.createCell(1).setCellValue("Requirement Elaboration");
 			coverSheetRow.getCell(1).setCellStyle(style2);
@@ -105,7 +97,7 @@ public class ExcelView extends AbstractXlsView {
         } catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} 
+		} */
         
         // create excel xls sheet
         Sheet documentPurpose = workbook.createSheet("Document Purpose");
@@ -136,6 +128,12 @@ public class ExcelView extends AbstractXlsView {
 
         int rowCount = 1;
 
+        CellStyle wordWrapStyle = workbook.createCellStyle();
+        Font wordWrapFont = workbook.createFont();
+        wordWrapFont.setFontName("Arial");
+        wordWrapFont.setFontHeightInPoints((short)10);
+        wordWrapStyle.setWrapText(true);
+        wordWrapStyle.setFont(wordWrapFont);
         for (SavedDataResponse savedDataResponse : savedDataResponseList) {
             Row userRow = sheet.createRow(rowCount++);
             userRow.createCell(0).setCellValue(savedDataResponse.getTaxonomyLevel1());
@@ -143,6 +141,7 @@ public class ExcelView extends AbstractXlsView {
             userRow.createCell(2).setCellValue(savedDataResponse.getTaxonomyLevel3());
             userRow.createCell(3).setCellValue(savedDataResponse.getTaxonomyLevel4());
             userRow.createCell(4).setCellValue(savedDataResponse.getRequirementStatement());
+            userRow.getCell(4).setCellStyle(wordWrapStyle);
         }	
 	}
 }
