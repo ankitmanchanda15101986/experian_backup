@@ -6,6 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.view.ContentNegotiatingViewResolver;
 
@@ -50,5 +51,10 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     @Bean
     public ViewResolver excelViewResolver() {
         return new ExcelViewResolver();
+    }
+    
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+    	registry.addMapping("/**");
     }
 }
