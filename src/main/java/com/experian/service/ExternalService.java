@@ -100,6 +100,9 @@ public class ExternalService {
 	@Value("${service.neo4j.document.save.uri}")
 	private String neo4jDocumentSaveInfoUri;
 
+	@Value("${service.neo4j.find.by.elaboration.uri}")
+	private String neo4jFindDocumentByElaboration;
+
 	/**
 	 * This method will call AI/ML service and pass requirement statement , in
 	 * return it will get taxation level 1,2,3,4.
@@ -193,14 +196,16 @@ public class ExternalService {
 	 */
 	public List<SavedDataResponse> processFinalResponse(FinalNeo4JRequest request) {
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		// Neo4jDocumentRequest documentRequest = null;
-		// documentRequest =
-		// processDocumentInformation(request.getDocumentRequest());
+		ResponseEntity<Neo4jDocumentRequest> findDocumentResponse = template.getForEntity(
+				neo4jFindDocumentByElaboration + "?input=" + request.getDocumentRequest().getRequirementElaboration(),
+				Neo4jDocumentRequest.class);
+		if (findDocumentResponse.getBody() == null) {
+			processDocumentInformation(request.getDocumentRequest());
+		}
 		StatementModelsRequest statementModelsRequest = new StatementModelsRequest();
-		List<Neo4JFileRequest> neo4jFileRequest = neo4jMapper.createFinalMappingResponse(request.getStatementModels(),"Axis Bank Tallyman");
-		//documentRequest.getRequirementElaboration());
+		List<Neo4JFileRequest> neo4jFileRequest = neo4jMapper.createFinalMappingResponse(request.getStatementModels(),
+				request.getDocumentRequest().getRequirementElaboration());
 		statementModelsRequest.setStatementModels(neo4jFileRequest);
-		System.out.println("processFinalResponse : " + gson.toJson(statementModelsRequest));
 		ResponseEntity<List<FinalResponse>> finalResponse = template.exchange(neo4jRequirementSaveUri, HttpMethod.POST,
 				new HttpEntity<StatementModelsRequest>(statementModelsRequest),
 				new ParameterizedTypeReference<List<FinalResponse>>() {
