@@ -17,7 +17,7 @@ import com.experian.service.LoginService;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*", maxAge = 3600)
+@CrossOrigin(allowedHeaders="*", allowCredentials="true",  origins = "*", maxAge = 3600)
 public class LoginController {
 
 	@Autowired

@@ -23,7 +23,7 @@ import com.experian.validator.Validator;
  */
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*", maxAge = 3600)
+@CrossOrigin(allowedHeaders="*", allowCredentials="true",  origins = "*", maxAge = 3600)
 public class FileController {
 
 	private static final Logger logger = LoggerFactory.getLogger(FileController.class);

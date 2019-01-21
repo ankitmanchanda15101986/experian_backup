@@ -9,6 +9,7 @@ import com.experian.dto.aiml.response.AimlFileResponse;
 import com.experian.dto.neo4j.RequirementStatement;
 import com.experian.dto.neo4j.RequirementSuggestions;
 import com.experian.dto.neo4j.Suggestions;
+import com.experian.dto.neo4j.brd.RequirementBasedOnElaborationResponse;
 import com.experian.dto.neo4j.finalResponse.FinalResponse;
 import com.experian.dto.neo4j.finalResponse.SavedDataResponse;
 import com.experian.dto.neo4j.request.Neo4JFileRequest;
@@ -141,6 +142,29 @@ public class ExperianNeo4JMapper {
 			savedDataResponse.setTaxonomyLevel3(finalResponse.getLevel3());
 			savedDataResponse.setTaxonomyLevel4(finalResponse.getLevel4());
 			savedDataResponses.add(savedDataResponse);
+		}
+		return savedDataResponses;
+	}
+	
+	/**
+	 * This method will convert list of requirement object based on requirement elaboration to list of saved 
+	 * data response.
+	 * @param requirementBasedOnElaborationResponses
+	 * @return
+	 */
+	public List<SavedDataResponse> convertRequirementBasedOnElaborationToSavedDataResponseList(List<RequirementBasedOnElaborationResponse> requirementBasedOnElaborationResponses) {
+		List<SavedDataResponse> savedDataResponses = new ArrayList<>();
+		for (RequirementBasedOnElaborationResponse requirementBasedOnElaborationResponse : requirementBasedOnElaborationResponses) {
+			SavedDataResponse savedDataResponse = new SavedDataResponse();
+			savedDataResponse.setDocumentElaboration(requirementBasedOnElaborationResponse.getDocumentInfoNode().getRequirementElaboration());
+			savedDataResponse.setDocumentPurpose(requirementBasedOnElaborationResponse.getDocumentInfoNode().getDocumentPurpose());
+			savedDataResponse.setRequirementStatement(requirementBasedOnElaborationResponse.getRequirementStatementNode().getRequirementStatement());
+			savedDataResponse.setTaxonomyLevel1(requirementBasedOnElaborationResponse.getRequirementStatementNode().getLevel1());
+			savedDataResponse.setTaxonomyLevel2(requirementBasedOnElaborationResponse.getRequirementStatementNode().getLevel2());
+			savedDataResponse.setTaxonomyLevel3(requirementBasedOnElaborationResponse.getRequirementStatementNode().getLevel3());
+			savedDataResponse.setTaxonomyLevel4(requirementBasedOnElaborationResponse.getRequirementStatementNode().getLevel4());
+			savedDataResponses.add(savedDataResponse);
+			
 		}
 		return savedDataResponses;
 	}

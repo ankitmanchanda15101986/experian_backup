@@ -33,6 +33,7 @@ import com.experian.dto.chatbot.response.ChatbotFinalResponse;
 import com.experian.dto.neo4j.RequirementStatement;
 import com.experian.dto.neo4j.RequirementSuggestions;
 import com.experian.dto.neo4j.Suggestions;
+import com.experian.dto.neo4j.brd.RequirementBasedOnElaborationResponse;
 import com.experian.dto.neo4j.finalResponse.FinalResponse;
 import com.experian.dto.neo4j.finalResponse.SavedDataResponse;
 import com.experian.dto.neo4j.request.FinalNeo4JRequest;
@@ -102,6 +103,9 @@ public class ExternalService {
 
 	@Value("${service.neo4j.find.by.elaboration.uri}")
 	private String neo4jFindDocumentByElaboration;
+	
+	@Value("${service.neo4j.requirement.based.on.elaboration.uri}")
+	private String neo4GetRequirementBasedOnElaboration;
 
 	/**
 	 * This method will call AI/ML service and pass requirement statement , in
@@ -489,5 +493,19 @@ public class ExternalService {
 			return aimlQualityScoreRespnse.getQualityScore().get(0);
 		}
 		return null;
+	}
+	
+	/**
+	 * This method will call requirement by elaboration to  get all requirements for generating brd document.
+	 * @param requirementElaboration
+	 * @return
+	 */
+	public List<SavedDataResponse> getResultToGenerateBrd(String requirementElaboration) {
+		ResponseEntity<List<RequirementBasedOnElaborationResponse>> response = template.exchange(
+				neo4GetRequirementBasedOnElaboration + "?input=" + requirementElaboration, HttpMethod.GET, null, 
+				new ParameterizedTypeReference<List<RequirementBasedOnElaborationResponse>>() {
+				});
+		List<SavedDataResponse> savedDataResponses = neo4jMapper.convertRequirementBasedOnElaborationToSavedDataResponseList(response.getBody());
+		return savedDataResponses;
 	}
 }

@@ -8,9 +8,11 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -34,7 +36,7 @@ import com.experian.validator.Validator;
  */
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*", maxAge = 3600)
+@CrossOrigin(allowedHeaders="*", allowCredentials="true",  origins = "*", maxAge = 3600)
 public class RequirementController {
 
 	@Autowired
@@ -54,8 +56,10 @@ public class RequirementController {
 	 * @return
 	 */
 	@RequestMapping(value = "/generate/brd", method = RequestMethod.GET, produces = "application/xlsx")
-	public ModelAndView generateBRDDocument() {
-		return new ModelAndView(new ExcelView(),"request", getSavedDataResponse());
+	public ModelAndView generateBRDDocument(@RequestParam("input") String requirementElaboration) {
+		System.out.println("requirementElaboration : "+requirementElaboration);
+		List<SavedDataResponse> dataResponses = service.getResultToGenerateBrd(requirementElaboration);
+		return new ModelAndView(new ExcelView(),"request", dataResponses);
 	}
 
 	/**
@@ -132,38 +136,5 @@ public class RequirementController {
 	@RequestMapping(value = "/chatbot/score", method = RequestMethod.POST)
 	public ChatbotFinalResponse getChatbotQualityScore(@RequestBody ExperianSearchRequest request) {
 		return service.calculateChatBotScore(request.getRequirement());
-	}
-	
-	public List<SavedDataResponse> getSavedDataResponse() {
-		List<SavedDataResponse> savedDataResponses = new ArrayList<>();
-		
-		SavedDataResponse savedDataResponse = new SavedDataResponse();
-		savedDataResponse.setDocumentElaboration("Axis Bank Tallynomy");
-		savedDataResponse.setRequirementStatement("Accounts due to be sent SMS "
-				+ "communications will be indicated through the treatment paths "
-				+ "assigned in TM. This includes collection treatments as well as "
-				+ "additional treatments including:\n - PTP reminder and Broken "
-				+ "PTP treatments\n - Pick-up process\n");
-		savedDataResponse.setTaxonomyLevel1("Account & Customer Management");
-		savedDataResponse.setTaxonomyLevel2("Communications");
-		savedDataResponse.setTaxonomyLevel3("Customer types");
-		savedDataResponse.setTaxonomyLevel4("");
-		
-		SavedDataResponse savedDataResponse1 = new SavedDataResponse();
-		savedDataResponse1.setDocumentElaboration("Axis Bank Tallynomy");
-		savedDataResponse1.setRequirementStatement("There are a couple of ways to define "
-				+ "custom queries for Spring Data Elasticsearch repositories. One way is to "
-				+ "use the @Query annotation, as demonstrated in section 2.2.Another option "
-				+ "is to use a builder for custom query creation.For example, we could search "
-				+ "for articles that have the word “data” in the title by building a query "
-				+ "with the NativeSearchQueryBuilder level1 : Account & Customer Management");
-		savedDataResponse1.setTaxonomyLevel1("Account & Customer Management");
-		savedDataResponse1.setTaxonomyLevel2("Communications");
-		savedDataResponse1.setTaxonomyLevel3("Brands");
-		savedDataResponse1.setTaxonomyLevel4("");
-		
-		savedDataResponses.add(savedDataResponse);
-		savedDataResponses.add(savedDataResponse1);
-		return savedDataResponses;
 	}
 }
