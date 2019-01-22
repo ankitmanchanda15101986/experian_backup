@@ -200,16 +200,19 @@ public class ExternalService {
 	 */
 	public List<SavedDataResponse> processFinalResponse(FinalNeo4JRequest request) {
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		Neo4jDocumentRequest neo4jDocumentRequest ;
 		ResponseEntity<Neo4jDocumentRequest> findDocumentResponse = template.getForEntity(
 				neo4jFindDocumentByElaboration + "?input=" + request.getDocumentRequest().getRequirementElaboration(),
 				Neo4jDocumentRequest.class);
+		neo4jDocumentRequest = findDocumentResponse.getBody();
 		if (findDocumentResponse.getBody() == null) {
-			processDocumentInformation(request.getDocumentRequest());
+			neo4jDocumentRequest = processDocumentInformation(request.getDocumentRequest());
 		}
 		StatementModelsRequest statementModelsRequest = new StatementModelsRequest();
 		List<Neo4JFileRequest> neo4jFileRequest = neo4jMapper.createFinalMappingResponse(request.getStatementModels(),
-				request.getDocumentRequest().getRequirementElaboration());
+				neo4jDocumentRequest.getRequirementElaboration());
 		statementModelsRequest.setStatementModels(neo4jFileRequest);
+		System.out.println("statementModelsRequest "+gson.toJson(statementModelsRequest));
 		ResponseEntity<List<FinalResponse>> finalResponse = template.exchange(neo4jRequirementSaveUri, HttpMethod.POST,
 				new HttpEntity<StatementModelsRequest>(statementModelsRequest),
 				new ParameterizedTypeReference<List<FinalResponse>>() {

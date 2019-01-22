@@ -3,15 +3,24 @@
  */
 package com.experian.service;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.poi.hwpf.HWPFDocument;
+import org.apache.poi.hwpf.extractor.WordExtractor;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xwpf.usermodel.ICell;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFTable;
+import org.apache.poi.xwpf.usermodel.XWPFTableCell;
+import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +44,8 @@ import com.experian.dto.neo4j.suggestion.request.SuggestionBasedOnMultipleRequir
 import com.experian.exception.FileStorageException;
 import com.experian.mapper.ExperianAIMLMapper;
 import com.experian.mapper.ExperianNeo4JMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * @author manchanda.a
@@ -42,7 +53,7 @@ import com.experian.mapper.ExperianNeo4JMapper;
  */
 @Service
 public class FileReaderService {
-	private static final Logger logger = LoggerFactory.getLogger(FileReaderService.class);
+	public static final Logger logger = LoggerFactory.getLogger(FileReaderService.class);
 
 	@Autowired
 	private ExternalService externalService;
@@ -107,8 +118,28 @@ public class FileReaderService {
 	 * 
 	 * @param resource
 	 * @return
+	 * @deprecated Use {@link com.experian.mapper.ExperianAIMLMapper#readExcelFile(MultipartFile)} instead
 	 */
 	public ExperianFileRequest readFileData(MultipartFile file) {
+		ExperianFileRequest experianFile = null;
+		if(file.getOriginalFilename().endsWith("xlsx")) {
+			experianFile = readExcelFile(file);
+		} else if(file.getOriginalFilename().endsWith("docx")) {
+			experianFile = readWordFile(file);
+		} 
+		return experianFile;
+	}
+	
+	
+	/**
+	 * This method will read excel file data and returns
+	 * list of experian file object.
+	 * 
+	 * @param resource
+	 * @param file TODO
+	 * @return
+	 */
+	private ExperianFileRequest readExcelFile(MultipartFile file) {
 		ExperianFileRequest experianFile = new ExperianFileRequest();
 		try {
 			Workbook workbook = new XSSFWorkbook(file.getInputStream());
@@ -124,7 +155,7 @@ public class FileReaderService {
 					Integer id = (int) currentRow.getCell(0).getNumericCellValue();
 					requirement.setID(id);
 					requirement.setRequirementStatement(currentRow.getCell(1).getStringCellValue());
-					logger.debug("requirement number " + requirement.getID() + " requirement : "
+					FileReaderService.logger.debug("requirement number " + requirement.getID() + " requirement : "
 							+ requirement.getRequirementStatement());
 					requirementList.add(requirement);
 				}
@@ -132,6 +163,50 @@ public class FileReaderService {
 			}
 			experianFile.setRequirementList(requirementList);
 			workbook.close();
+		} catch (IOException ex) {
+			logger.error("Caught error while reading file", ex);
+			throw new FileStorageException("Caught error while reading file", ex);
+		}
+		return experianFile;
+	}
+	
+	/**
+	 * This method will read word file data and returns
+	 * list of experian file object.
+	 * 
+	 * @param resource
+	 * @param file TODO
+	 * @return
+	 */
+	private ExperianFileRequest readWordFile(MultipartFile file) {
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		ExperianFileRequest experianFile = new ExperianFileRequest();
+		List<RequirementStatement> requirementStatements = new ArrayList<>();
+		try {
+			XWPFDocument document = new XWPFDocument(file.getInputStream());
+			List<XWPFTable> fileData = document.getTables();
+			for (XWPFTable xwpfTable : fileData) {
+				int rowCount = 0;
+				for (XWPFTableRow xwpfTableRow : xwpfTable.getRows()) {
+					int count = 0;
+					RequirementStatement requirementStatement = new RequirementStatement();
+					if(rowCount > 0) {
+						for (XWPFTableCell cell : xwpfTableRow.getTableCells()) {
+							if(count==0) {
+								requirementStatement.setID(Integer.parseInt(cell.getText()));
+							} else {
+								requirementStatement.setRequirementStatement(cell.getText());
+							}
+							count++;
+						}
+						requirementStatements.add(requirementStatement);
+					}
+					rowCount++;
+				}
+			}
+			experianFile.setRequirementList(requirementStatements);
+			document.close();
+			
 		} catch (IOException ex) {
 			logger.error("Caught error while reading file", ex);
 			throw new FileStorageException("Caught error while reading file", ex);

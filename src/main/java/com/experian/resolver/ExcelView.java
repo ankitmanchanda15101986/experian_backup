@@ -33,22 +33,22 @@ public class ExcelView extends AbstractXlsView {
         CellStyle style = workbook.createCellStyle();
         Font font = workbook.createFont();
         font.setFontName("Arial");
-        style.setFillForegroundColor(HSSFColor.GREEN.index);
+        style.setFillForegroundColor(HSSFColor.HSSFColorPredefined.GREEN.getIndex());
         style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         style.setWrapText(true);
         font.setBold(true);
-        font.setColor(HSSFColor.WHITE.index);
+        font.setColor(HSSFColor.HSSFColorPredefined.WHITE.getIndex());
         style.setFont(font);
         
         // create style 
         CellStyle style1 = workbook.createCellStyle();
         Font font1 = workbook.createFont();
         font1.setFontName("Arial");
-        style1.setFillForegroundColor(HSSFColor.WHITE.index);
+        style1.setFillForegroundColor(HSSFColor.HSSFColorPredefined.WHITE.getIndex());
         style1.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         style1.setWrapText(true);
         font1.setBold(true);
-        font1.setColor(HSSFColor.GREEN.index);
+        font1.setColor(HSSFColor.HSSFColorPredefined.GREEN.getIndex());
         font1.setFontHeightInPoints((short)30);
         style1.setFont(font1);
         
@@ -56,11 +56,11 @@ public class ExcelView extends AbstractXlsView {
         CellStyle style2 = workbook.createCellStyle();
         Font font2 = workbook.createFont();
         font2.setFontName("Arial");
-        style2.setFillForegroundColor(HSSFColor.WHITE.index);
+        style2.setFillForegroundColor(HSSFColor.HSSFColorPredefined.WHITE.getIndex());
         style2.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         style2.setWrapText(true);
         font2.setBold(true);
-        font2.setColor(HSSFColor.GREEN.index);
+        font2.setColor(HSSFColor.HSSFColorPredefined.GREEN.getIndex());
         font2.setFontHeightInPoints((short)18);
         style2.setFont(font2);
         

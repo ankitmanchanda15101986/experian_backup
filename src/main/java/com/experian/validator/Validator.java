@@ -17,7 +17,7 @@ import com.experian.exception.FileStorageException;
 @Component
 public class Validator {
 	private static final Logger logger = LoggerFactory.getLogger(Validator.class);
-	
+
 	/**
 	 * This method will  validate file based on extension type and invalid characters.
 	 * @param file
@@ -26,9 +26,10 @@ public class Validator {
 		
 		logger.debug("File name is "+file.getOriginalFilename());
 		// Validate file format
-		if(!file.getOriginalFilename().endsWith("xlsx")) {
+		if(file.getOriginalFilename().endsWith("xlsx") || file.getOriginalFilename().endsWith("docx")) {
+		} else {
 			throw new FileStorageException("Sorry! Invalid file format only accepted format is xlsx " + file.getOriginalFilename());
-		}	
+		}
 		
 		// Check if the file's name contains invalid characters
         if(file.getOriginalFilename().contains("..")) {
