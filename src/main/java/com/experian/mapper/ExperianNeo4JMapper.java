@@ -47,14 +47,15 @@ public class ExperianNeo4JMapper {
 	
 	/**
 	 * This method will create suggestion response from list of neo4j suggestion object.
+	 * @param searchInput 
 	 * @param neo4jSuggestionResponseList
 	 * @return
 	 */
-	public SuggestionResponse convertSuggestionBasedResponse(List<Neo4jSuggestionResponse> neo4jSuggestionResponseList) {
+	public SuggestionResponse convertSuggestionBasedResponse(String searchInput, List<Neo4jSuggestionResponse> neo4jSuggestionResponseList) {
 		SuggestionResponse suggestionResponse = new SuggestionResponse();
 		List<RequirementSuggestions> requirementSuggestionsList = new ArrayList<>();
 		for (Neo4jSuggestionResponse neo4jSuggestionResponse : neo4jSuggestionResponseList) {
-			requirementSuggestionsList.add(createRequirementSuggestions(Integer.parseInt(neo4jSuggestionResponse.getId()), neo4jSuggestionResponse));
+			requirementSuggestionsList.add(createRequirementSuggestions(searchInput, Integer.parseInt(neo4jSuggestionResponse.getId()), neo4jSuggestionResponse));
 		}
 		suggestionResponse.setSuggestions(requirementSuggestionsList);
 		return suggestionResponse;
@@ -62,23 +63,30 @@ public class ExperianNeo4JMapper {
 	
 	/**
 	 * This method will create requirement suggestions for each id.
+	 * @param searchInput 
 	 * @param id
 	 * @param neo4jSuggestionResponse
 	 * @return
 	 */
-	private RequirementSuggestions createRequirementSuggestions(Integer id, Neo4jSuggestionResponse neo4jSuggestionResponse) {
+	private RequirementSuggestions createRequirementSuggestions(String searchInput, Integer id, Neo4jSuggestionResponse neo4jSuggestionResponse) {
 		RequirementSuggestions requirementSuggestions = new RequirementSuggestions();
 		RequirementStatement requirementStatement = new RequirementStatement();
 		List<Suggestions> suggestionList = new ArrayList<>();
 		requirementStatement.setID(id);
+		List<Integer> suggestionId = new ArrayList<>();
 		for (Neo4jSuggestionDataList neo4jSuggestionDataList : neo4jSuggestionResponse.getResult()) {
 			if(neo4jSuggestionDataList != null) {
 				if(!org.springframework.util.StringUtils.isEmpty(neo4jSuggestionDataList.getStatement())) {
 					requirementStatement.setRequirementStatement(neo4jSuggestionDataList.getStatement());
+				} else {
+					requirementStatement.setRequirementStatement(searchInput);
 				}
 				for (Neo4jSuggestionData neo4jSuggestionData : neo4jSuggestionDataList.getSuggestion()) {
-					Suggestions suggestions = createSuggestions(neo4jSuggestionData);
-					suggestionList.add(suggestions);
+					if(!suggestionId.contains(neo4jSuggestionData.getId())) {
+						suggestionId.add(neo4jSuggestionData.getId());
+						Suggestions suggestions = createSuggestions(neo4jSuggestionData);
+						suggestionList.add(suggestions);
+					}
 				}
 				
 			}

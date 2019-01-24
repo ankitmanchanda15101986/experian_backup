@@ -28,7 +28,7 @@ public class Validator {
 		// Validate file format
 		if(file.getOriginalFilename().endsWith("xlsx") || file.getOriginalFilename().endsWith("docx")) {
 		} else {
-			throw new FileStorageException("Sorry! Invalid file format only accepted format is xlsx " + file.getOriginalFilename());
+			throw new FileStorageException("Sorry! Invalid file format only accepted format is xlsx and docx " + file.getOriginalFilename());
 		}
 		
 		// Check if the file's name contains invalid characters

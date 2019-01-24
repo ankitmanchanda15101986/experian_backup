@@ -3,20 +3,16 @@
  */
 package com.experian.service;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.poi.hwpf.HWPFDocument;
-import org.apache.poi.hwpf.extractor.WordExtractor;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.apache.poi.xwpf.usermodel.ICell;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableCell;
@@ -103,7 +99,7 @@ public class FileReaderService {
 		List<Neo4jSuggestionResponse> neo4jSuggestionResponse = externalService
 				.processFileToNeo4jToGetSuggestion(suggestionRequest);
 
-		SuggestionResponse suggestionResponse = neo4jMapper.convertSuggestionBasedResponse(neo4jSuggestionResponse);
+		SuggestionResponse suggestionResponse = neo4jMapper.convertSuggestionBasedResponse("",neo4jSuggestionResponse);
 		logger.debug("Neo4j file suggestion ", suggestionResponse.getSuggestions().toString());
 
 		// it will create final response

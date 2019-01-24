@@ -177,14 +177,13 @@ public class ExternalService {
 
 			AimlFileFinalResponse aimlFileFinalResponse = aimlMapper.mapQualityAndTaxationToGetFinalResponse(
 					experianFileRequest, aimlTaxationResponse, aimlQualityScoreRespnse);
-
 			// Calling Neo4j Service to get suggestion.
 			SuggestionBasedOnMultipleRequirementRequest suggestionRequest = neo4jMapper
 					.convertRequirementSuggestionToSuggestionRequest(aimlFileFinalResponse);
 			List<Neo4jSuggestionResponse> neo4jSuggestionResponse = processFileToNeo4jToGetSuggestion(
 					suggestionRequest);
 
-			SuggestionResponse suggestionResponse = neo4jMapper.convertSuggestionBasedResponse(neo4jSuggestionResponse);
+			SuggestionResponse suggestionResponse = neo4jMapper.convertSuggestionBasedResponse(searchInput, neo4jSuggestionResponse);
 			logger.debug("Neo4j file suggestion ", suggestionResponse.getSuggestions().toString());
 			return suggestionResponse;
 		}
@@ -199,7 +198,6 @@ public class ExternalService {
 	 * @return
 	 */
 	public List<SavedDataResponse> processFinalResponse(FinalNeo4JRequest request) {
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		Neo4jDocumentRequest neo4jDocumentRequest ;
 		ResponseEntity<Neo4jDocumentRequest> findDocumentResponse = template.getForEntity(
 				neo4jFindDocumentByElaboration + "?input=" + request.getDocumentRequest().getRequirementElaboration(),
@@ -212,7 +210,6 @@ public class ExternalService {
 		List<Neo4JFileRequest> neo4jFileRequest = neo4jMapper.createFinalMappingResponse(request.getStatementModels(),
 				neo4jDocumentRequest.getRequirementElaboration());
 		statementModelsRequest.setStatementModels(neo4jFileRequest);
-		System.out.println("statementModelsRequest "+gson.toJson(statementModelsRequest));
 		ResponseEntity<List<FinalResponse>> finalResponse = template.exchange(neo4jRequirementSaveUri, HttpMethod.POST,
 				new HttpEntity<StatementModelsRequest>(statementModelsRequest),
 				new ParameterizedTypeReference<List<FinalResponse>>() {
@@ -292,7 +289,7 @@ public class ExternalService {
 						suggestionRequest);
 
 				SuggestionResponse suggestionResponse = neo4jMapper
-						.convertSuggestionBasedResponse(neo4jSuggestionResponse);
+						.convertSuggestionBasedResponse(requirement, neo4jSuggestionResponse);
 				logger.debug("Neo4j file suggestion ", suggestionResponse.getSuggestions().toString());
 				if (suggestionResponse != null) {
 					Map<AimlFileResponse, RequirementSuggestions> map = helper

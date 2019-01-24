@@ -1,5 +1,8 @@
 package com.experian;
 
+import org.apache.catalina.connector.Connector;
+import org.apache.tomcat.util.descriptor.web.SecurityCollection;
+import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -9,52 +12,48 @@ import org.springframework.web.servlet.config.annotation.ContentNegotiationConfi
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.view.ContentNegotiatingViewResolver;
-
 import com.experian.resolver.ExcelViewResolver;
+import org.apache.catalina.Context;
 
 import java.util.ArrayList;
 import java.util.List;
 
-
-
 @Configuration
 public class WebConfig extends WebMvcConfigurerAdapter {
 
-    @Override
-    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
-        configurer
-                .defaultContentType(MediaType.APPLICATION_JSON)
-                .favorPathExtension(true);
-    }
+	@Override
+	public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+		configurer.defaultContentType(MediaType.APPLICATION_JSON).favorPathExtension(true);
+	}
 
-    /*
-     * Configure ContentNegotiatingViewResolver
-     */
-    @Bean
-    public ViewResolver contentNegotiatingViewResolver(ContentNegotiationManager manager) {
-        ContentNegotiatingViewResolver resolver = new ContentNegotiatingViewResolver();
-        resolver.setContentNegotiationManager(manager);
+	/*
+	 * Configure ContentNegotiatingViewResolver
+	 */
+	@Bean
+	public ViewResolver contentNegotiatingViewResolver(ContentNegotiationManager manager) {
+		ContentNegotiatingViewResolver resolver = new ContentNegotiatingViewResolver();
+		resolver.setContentNegotiationManager(manager);
 
-        // Define all possible view resolvers
-        List<ViewResolver> resolvers = new ArrayList<>();
+		// Define all possible view resolvers
+		List<ViewResolver> resolvers = new ArrayList<>();
 
-        resolvers.add(excelViewResolver());
+		resolvers.add(excelViewResolver());
 
-        resolver.setViewResolvers(resolvers);
-        return resolver;
-    }
+		resolver.setViewResolvers(resolvers);
+		return resolver;
+	}
 
-    /*
-     * Configure PdfView resolver to provide XLS output using Apache POI library to
-     * generate XLS output for an object content
-     */
-    @Bean
-    public ViewResolver excelViewResolver() {
-        return new ExcelViewResolver();
-    }
-    
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-    	registry.addMapping("/**");
-    }
+	/*
+	 * Configure PdfView resolver to provide XLS output using Apache POI library
+	 * to generate XLS output for an object content
+	 */
+	@Bean
+	public ViewResolver excelViewResolver() {
+		return new ExcelViewResolver();
+	}
+
+	@Override
+	public void addCorsMappings(CorsRegistry registry) {
+		registry.addMapping("/**");
+	}
 }
