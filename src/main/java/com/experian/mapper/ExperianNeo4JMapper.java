@@ -2,7 +2,10 @@ package com.experian.mapper;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.poi.util.StringUtil;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import com.experian.dto.aiml.response.AimlFileFinalResponse;
 import com.experian.dto.aiml.response.AimlFileResponse;
@@ -15,6 +18,8 @@ import com.experian.dto.neo4j.finalResponse.SavedDataResponse;
 import com.experian.dto.neo4j.request.Neo4JFileRequest;
 import com.experian.dto.neo4j.request.ShortCutDocument;
 import com.experian.dto.neo4j.response.SuggestionResponse;
+import com.experian.dto.neo4j.response.autocomplete.AutoCompleteResponse;
+import com.experian.dto.neo4j.response.autocomplete.SearchAnyResponse;
 import com.experian.dto.neo4j.suggestion.request.Neo4jSuggestionData;
 import com.experian.dto.neo4j.suggestion.request.Neo4jSuggestionDataList;
 import com.experian.dto.neo4j.suggestion.request.Neo4jSuggestionResponse;
@@ -175,5 +180,22 @@ public class ExperianNeo4JMapper {
 			
 		}
 		return savedDataResponses;
+	}
+	
+	/**
+	 * This method will convert search any service response list to auto complete response list.
+	 * @param searchAnyResponses
+	 * @return
+	 */
+	public List<AutoCompleteResponse> convertSearchAnyResponseToAutoCompleteResponse(List<SearchAnyResponse> searchAnyResponses) {
+		List<AutoCompleteResponse> autoCompleteResponses = new ArrayList<>();
+		for (SearchAnyResponse searchAnyResponse : searchAnyResponses) {
+			AutoCompleteResponse autoCompleteResponse = new AutoCompleteResponse();
+			if(!StringUtils.isEmpty(searchAnyResponse.getRequirementStatement())) {
+				autoCompleteResponse.setSuggestion(searchAnyResponse.getRequirementStatement());
+				autoCompleteResponses.add(autoCompleteResponse);
+			}
+		}
+		return autoCompleteResponses;
 	}
 }

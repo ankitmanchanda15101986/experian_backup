@@ -41,6 +41,8 @@ import com.experian.dto.neo4j.request.Neo4JFileRequest;
 import com.experian.dto.neo4j.request.Neo4jDocumentRequest;
 import com.experian.dto.neo4j.request.StatementModelsRequest;
 import com.experian.dto.neo4j.response.SuggestionResponse;
+import com.experian.dto.neo4j.response.autocomplete.AutoCompleteResponse;
+import com.experian.dto.neo4j.response.autocomplete.SearchAnyResponse;
 import com.experian.dto.neo4j.response.taxation.Taxation;
 import com.experian.dto.neo4j.response.wordCategory.WordCategory;
 import com.experian.dto.neo4j.response.wordCategory.WordCategoryResponse;
@@ -106,6 +108,9 @@ public class ExternalService {
 	
 	@Value("${service.neo4j.requirement.based.on.elaboration.uri}")
 	private String neo4GetRequirementBasedOnElaboration;
+	
+	@Value("${service.neo4j.auto.complete.uri}")
+	private String neo4AutoComplete;
 
 	/**
 	 * This method will call AI/ML service and pass requirement statement , in
@@ -133,6 +138,11 @@ public class ExternalService {
 
 	}
 
+	/**
+	 * This method will call neo4j service to get list of suggestion based on multiple request.
+	 * @param request
+	 * @return
+	 */
 	public List<Neo4jSuggestionResponse> processFileToNeo4jToGetSuggestion(
 			SuggestionBasedOnMultipleRequirementRequest request) {
 		ResponseEntity<List<Neo4jSuggestionResponse>> response = template.exchange(neo4jSuggestionLatestUri,
@@ -140,6 +150,20 @@ public class ExternalService {
 				new ParameterizedTypeReference<List<Neo4jSuggestionResponse>>() {
 				});
 		return response.getBody();
+	}
+	
+	/**
+	 * This method will call neo4j service to get suggestions based on text entered by user.
+	 * @param requirement
+	 * @return
+	 */
+	public List<AutoCompleteResponse> processAutoComplete(String input) {
+		String uri = neo4AutoComplete+"?searchInput="+input;
+		ResponseEntity<List<SearchAnyResponse>> response = template.exchange(uri, HttpMethod.GET, null,
+				new ParameterizedTypeReference<List<SearchAnyResponse>>() {
+				});
+		 List<AutoCompleteResponse> autoCompleteResponses = neo4jMapper.convertSearchAnyResponseToAutoCompleteResponse(response.getBody());
+		return autoCompleteResponses;
 	}
 
 	/**
@@ -152,6 +176,7 @@ public class ExternalService {
 	 */
 	public SuggestionResponse searchRequirementToGetSuggestions(String searchInput) {
 		// Get Word count.
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		WordCategoryResponse wordCategoryResponse = getWordCategoryFromNeo4j();
 		if (wordCategoryResponse != null) {
 			AimlQualityScoreRequest aimlQualityScoreRequest = new AimlQualityScoreRequest();
@@ -182,7 +207,7 @@ public class ExternalService {
 					.convertRequirementSuggestionToSuggestionRequest(aimlFileFinalResponse);
 			List<Neo4jSuggestionResponse> neo4jSuggestionResponse = processFileToNeo4jToGetSuggestion(
 					suggestionRequest);
-
+			System.out.println(" neo4jSuggestionResponse "+gson.toJson(neo4jSuggestionResponse));
 			SuggestionResponse suggestionResponse = neo4jMapper.convertSuggestionBasedResponse(searchInput, neo4jSuggestionResponse);
 			logger.debug("Neo4j file suggestion ", suggestionResponse.getSuggestions().toString());
 			return suggestionResponse;
@@ -421,15 +446,14 @@ public class ExternalService {
 	public ChatbotFinalResponse calculateChatBotScore(String requirement) {
 		// Get Word count.
 		WordCategoryResponse wordCategoryResponse = getWordCategoryFromNeo4j();
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		if (wordCategoryResponse != null) {
 			ChatBotScoreRequest request = new ChatBotScoreRequest();
 			request.setRequirement(requirement);
 			request.setWordCategory(wordCategoryResponse.getWordCategory());
-			logger.debug("ChatBotScoreRequest : " + gson.toJson(request));
+			logger.debug("ChatBotScoreRequest : " + getGSon().toJson(request));
 			ResponseEntity<ChatBotScoreResponse> chatBotScoreResponse = template.postForEntity(chatbotCalculateScoreUri,
 					request, ChatBotScoreResponse.class);
-			logger.debug("ChatBotScoreResponse : " + gson.toJson(chatBotScoreResponse.getBody()));
+			logger.debug("ChatBotScoreResponse : " + getGSon().toJson(chatBotScoreResponse.getBody()));
 			AimlQualityScore aimlQualityScoreResponse = refreshQualityScore(requirement);
 			ChatbotFinalResponse chatbotFinalResponse = chatbotMapper.createChatBotResponseToIncludeQualityResponse(
 					aimlQualityScoreResponse, chatBotScoreResponse.getBody());
@@ -507,5 +531,10 @@ public class ExternalService {
 				});
 		List<SavedDataResponse> savedDataResponses = neo4jMapper.convertRequirementBasedOnElaborationToSavedDataResponseList(response.getBody());
 		return savedDataResponses;
+	}
+	
+	private Gson getGSon() {
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		return gson;
 	}
 }

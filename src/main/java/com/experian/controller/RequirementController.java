@@ -3,12 +3,10 @@
  */
 package com.experian.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -25,6 +23,7 @@ import com.experian.dto.chatbot.response.ChatbotFinalResponse;
 import com.experian.dto.neo4j.finalResponse.SavedDataResponse;
 import com.experian.dto.neo4j.request.FinalNeo4JRequest;
 import com.experian.dto.neo4j.response.SuggestionResponse;
+import com.experian.dto.neo4j.response.autocomplete.AutoCompleteResponse;
 import com.experian.dto.neo4j.response.taxation.Taxation;
 import com.experian.resolver.ExcelView;
 import com.experian.service.ExternalService;
@@ -136,5 +135,15 @@ public class RequirementController {
 	@RequestMapping(value = "/chatbot/score", method = RequestMethod.POST)
 	public ChatbotFinalResponse getChatbotQualityScore(@RequestBody ExperianSearchRequest request) {
 		return service.calculateChatBotScore(request.getRequirement());
+	}
+	
+	/**
+	 * This controller will be called when autocomplete request comes from frontend.
+	 * @param statement
+	 * @return
+	 */
+	@RequestMapping(value = "/autocomplete", method = RequestMethod.GET)
+	public List<AutoCompleteResponse> getAutoComplete(@RequestParam("input") String inputStatement) {
+		return service.processAutoComplete(inputStatement);
 	}
 }
